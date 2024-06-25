@@ -154,11 +154,11 @@ namespace FRMTransportePassageiros
                         dBDataSource.SetValue("Name", 0, "");
                     }
 
-                    CardCode = oCompany.GetNewObjectKey();
+                    CardCode = Tools.Company.GetNewObjectKey(); //oCompany.GetNewObjectKey();
                     Application.SBO_Application.SetStatusBarMessage(msgSuccess, SAPbouiCOM.BoMessageTime.bmt_Short, false);
                 }
                 else
-                    Application.SBO_Application.SetStatusBarMessage(msgError + " - " + oCompany.GetLastErrorDescription(), SAPbouiCOM.BoMessageTime.bmt_Short, true);
+                    Application.SBO_Application.SetStatusBarMessage(msgError + " - " + Tools.Company.GetLastErrorDescription(), SAPbouiCOM.BoMessageTime.bmt_Short, true);   //oCompany.GetLastErrorDescription()
             }
         }
         private SAPbouiCOM.StaticText lblNome;
@@ -172,7 +172,7 @@ namespace FRMTransportePassageiros
         private int operation;
         public string CardCode;
 
-        Company oCompany = (Company)Application.SBO_Application.Company.GetDICompany();
+        //Company oCompany = (Company)Application.SBO_Application.Company.GetDICompany();
 
     }
 }

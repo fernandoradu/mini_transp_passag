@@ -47,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventClass.cs" />
+    <Compile Include="Foms\FormLinhas.b1f.cs">
+      <DependentUpon>FormLinhas.b1f</DependentUpon>
+    </Compile>
     <Compile Include="Foms\FRMForm.cs" />
     <Compile Include="Framework\Tools.cs" />
     <Compile Include="Framework\UserDataTableNav.cs" />
@@ -56,6 +59,9 @@
       <DependentUpon>Menu.resx</DependentUpon>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
+    <None Include="Foms\FormLinhas.b1f">
+      <FormCategory>UserForm</FormCategory>
+    </None>
     <None Include="Foms\FormLocalidade.b1f">
       <FormCategory>UserForm</FormCategory>
     </None>

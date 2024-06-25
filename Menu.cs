@@ -48,7 +48,6 @@ namespace FRMTransportePassageiros
         {
             BubbleEvent = true;
 
-
             Tools.SetUICompany();
 
             if ( pVal.MenuUID.Contains("mnu") && pVal.BeforeAction)
@@ -68,24 +67,36 @@ namespace FRMTransportePassageiros
 
         private void ChooseForm(string menuId)
         {
+            string[] fields =
+            {
+                "Code",
+                "Name"
+            };
+
             switch (menuId)
             {
                 case "mnu_Locali":
-                    string[] fields =
-                    {
-                        "Code",
-                        "Name"
-                    };
-
+            
                     Tools.SetUserTableNavigator("@TB_LOCALIDADE");
                     Tools.UserTabNavigator.QueryToRecord(fields);
 
                     _activeForm = new FormLocalidade();
                     //System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
                     _activeForm.Show();
+
                     break;
+
                 case "mnu_Linha":
+
+                    Tools.SetUserTableNavigator("@TB_LINHAS");
+                    Tools.UserTabNavigator.QueryToRecord(fields);
+
+                    _activeForm = new FormLinhas();
+                    //System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
+                    _activeForm.Show();
+
                     break;
+
                 case "mnu_Horario":
                     break;
                 case "mnu_Viagem":
@@ -142,6 +153,10 @@ namespace FRMTransportePassageiros
                         form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Code", 0, Tools.UserTabNavigator.RecordGetValue("Code").ToString());
                         form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Name", 0, Tools.UserTabNavigator.RecordGetValue("Name").ToString());
                     }
+                }
+                else if (Tools.UserTabNavigator.UserTableName == "@TB_LINHAS" && form.UniqueID == "FRMLinha")
+                {
+
                 }
                 //TODO: Preparar para os demais formulários
             }
