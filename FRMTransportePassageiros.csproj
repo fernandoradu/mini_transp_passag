@@ -47,18 +47,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventClass.cs" />
+    <Compile Include="Foms\FormLinha.b1f.cs">
+      <DependentUpon>FormLinha.b1f</DependentUpon>
+    </Compile>
     <Compile Include="Foms\FormLinhas.b1f.cs">
       <DependentUpon>FormLinhas.b1f</DependentUpon>
     </Compile>
     <Compile Include="Foms\FRMForm.cs" />
+    <Compile Include="Framework\FormConsultaRegistro.b1f.cs">
+      <DependentUpon>FormConsultaRegistro.b1f</DependentUpon>
+    </Compile>
     <Compile Include="Framework\Tools.cs" />
     <Compile Include="Framework\UserDataTableNav.cs" />
+    <Compile Include="Repositories\Linha.cs" />
+    <Compile Include="Repositories\SecaoLinha.cs" />
     <Compile Include="Resources\Menu.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Menu.resx</DependentUpon>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
+    <None Include="Foms\FormLinha.b1f">
+      <FormCategory>UserForm</FormCategory>
+    </None>
     <None Include="Foms\FormLinhas.b1f">
       <FormCategory>UserForm</FormCategory>
     </None>
@@ -80,6 +91,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Framework\FormConsultaRegistro.b1f">
+      <FormCategory>UserForm</FormCategory>
+    </None>
     <None Include="Resources\menuadd.xml" />
   </ItemGroup>
   <ItemGroup>

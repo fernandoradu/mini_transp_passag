@@ -12,8 +12,7 @@ namespace FRMTransportePassageiros
     class Menu
     {
         public Menu()
-        {
-            _activeForm = null;
+        {            
         }
         public void AddMenuItems()
         {
@@ -80,9 +79,9 @@ namespace FRMTransportePassageiros
                     Tools.SetUserTableNavigator("@TB_LOCALIDADE");
                     Tools.UserTabNavigator.QueryToRecord(fields);
 
-                    _activeForm = new FormLocalidade();
+                    _formLocalidade = new FormLocalidade();
                     //System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
-                    _activeForm.Show();
+                    _formLocalidade.Show();
 
                     break;
 
@@ -91,9 +90,9 @@ namespace FRMTransportePassageiros
                     Tools.SetUserTableNavigator("@TB_LINHAS");
                     Tools.UserTabNavigator.QueryToRecord(fields);
 
-                    _activeForm = new FormLinhas();
+                    _formLinha = new FormLinha();
                     //System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
-                    _activeForm.Show();
+                    _formLinha.Show();
 
                     break;
 
@@ -167,7 +166,7 @@ namespace FRMTransportePassageiros
                 {
                     if (Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1) //1-Confirma, 2-Cancelar
                     {
-                        if (_activeForm != null)
+                        if ( _formLocalidade != null)
                             FormLocalidade.HandlingRegister(Tools.Company, (UserTable)Tools.Company.UserTables.Item("TB_LOCALIDADE"),
                                 (Recordset)Tools.Company.GetBusinessObject(BoObjectTypes.BoRecordset), 
                                 FormLocalidade.SetOperation(),
@@ -191,7 +190,7 @@ namespace FRMTransportePassageiros
             }
 
         }
-
-        private FRMForm _activeForm = null;
+        private FormLocalidade _formLocalidade;
+        private FormLinha _formLinha;
     }
 }

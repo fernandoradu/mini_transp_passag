@@ -199,14 +199,16 @@ namespace FRMTransportePassageiros.Framework.Classes
 				UserTabNavigator = new UserDataTableNav(table, Tools.Company);
 
         }
-		//public static void SetSBOFormActive(SAPbouiCOM.Form form)
-  //      {
-		//	if (form != Tools.ActiveForm)
-		//		Tools.ActiveForm = form;		
-
-		//}
+		public static void ConsultaRegistro(string tableLookUp)
+        {
+			Tools.TableLookUp = tableLookUp;
+			Tools.FormConsulta = new FormConsultaRegistro();
+			Tools.FormConsulta.Show();
+        }
 		public static Company Company = null;
 		public static UserDataTableNav UserTabNavigator = null;
+		public static FormConsultaRegistro FormConsulta;
+		public static string TableLookUp = "";
 		//Propiedade estática com os formulários que poderam ser manipulados pelos eventos de menu da menu bar
 		//seta para o primeiro registro;
 		//seta para o registro anterior;

@@ -9,7 +9,7 @@ using System.Xml;
 namespace FRMTransportePassageiros
 {
     [FormAttribute("FRMTransportePassageiros.FormLocalidade", "Foms/FormLocalidade.b1f")]
-    class FormLocalidade : FRMForm //UserFormBase
+    class FormLocalidade : UserFormBase
     {
         public FormLocalidade()
         {

@@ -10,7 +10,7 @@ using System.Text;
 namespace FRMTransportePassageiros.Foms
 {
     [FormAttribute("FRMTransportePassageiros.Foms.FormLinhas", "Foms/FormLinhas.b1f")]
-    class FormLinhas : FRMForm
+    class FormLinhas : UserFormBase
     {
         public FormLinhas()
         {
@@ -21,11 +21,11 @@ namespace FRMTransportePassageiros.Foms
         /// </summary>
         public override void OnInitializeComponent()
         {
-            this.lblLinha = ((SAPbouiCOM.StaticText)(this.GetItem("lblLinha").Specific));
-            this.txtLinha = ((SAPbouiCOM.EditText)(this.GetItem("txtLinha").Specific));
-            this.lblNLinha = ((SAPbouiCOM.StaticText)(this.GetItem("lblNLinha").Specific));
-            this.txtNLinha = ((SAPbouiCOM.EditText)(this.GetItem("txtNLinha").Specific));
-            this.mtxSecoes = ((SAPbouiCOM.Matrix)(this.GetItem("mtxSecoes").Specific));
+            this.lblLinha = ((SAPbouiCOM.StaticText)(this.GetItem("AlblLinha").Specific));
+            this.txtLinha = ((SAPbouiCOM.EditText)(this.GetItem("").Specific));
+            this.lblNLinha = ((SAPbouiCOM.StaticText)(this.GetItem("AlblNLinha").Specific));
+            this.txtNLinha = ((SAPbouiCOM.EditText)(this.GetItem("AtxtNLinha").Specific));
+            this.mtxSecoes = ((SAPbouiCOM.Matrix)(this.GetItem("AmtxSecoes").Specific));
             this.btnConfirmar = ((SAPbouiCOM.Button)(this.GetItem("1").Specific));
             this.btnConfirmar.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnConfirmar_PressedAfter);
             this.btnConfirmar.PressedBefore += new SAPbouiCOM._IButtonEvents_PressedBeforeEventHandler(this.btnConfirmar_PressedBefore);
@@ -39,11 +39,8 @@ namespace FRMTransportePassageiros.Foms
         /// </summary>
         public override void OnInitializeFormEvents()
         {
-            this.DataLoadAfter += new DataLoadAfterHandler(this.Form_DataLoadAfter);
-
-        }
-
-        private SAPbouiCOM.StaticText lblLinha;
+            //this.DataLoadAfter += new DataLoadAfterHandler(this.Form_DataLoadAfter);
+        }        
 
         private void OnCustomInitialize()
         {
@@ -111,6 +108,7 @@ namespace FRMTransportePassageiros.Foms
         private SAPbouiCOM.Matrix mtxSecoes;
         private SAPbouiCOM.Button btnConfirmar;
         private SAPbouiCOM.Button btnCancelar;
+        private SAPbouiCOM.StaticText lblLinha;
         private string query = "";
 
         private void Form_DataLoadAfter(ref SAPbouiCOM.BusinessObjectInfo pVal)
@@ -126,17 +124,20 @@ namespace FRMTransportePassageiros.Foms
 
         private void btnConfirmar_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
+            int operation = Tools.UserTabNavigator != null ? Tools.UserTabNavigator.RunningOperation : FormLinhas.SetOperation();
+
             Linha linha = new Linha();
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
 
             if (form.UniqueID == "FRMLinha")
             {
                 linha.SetDataToForm(form);
+                linha.ManipulateData(operation);
             }
-            
+
         }
 
-        public static void HandlingRegister(Linha linha, int operation = 0)
+        /*public static void HandlingRegister(Linha linha, int operation = 0)
         {
             string CardCode = "";
             string msgError = "";
@@ -202,7 +203,7 @@ namespace FRMTransportePassageiros.Foms
                 else
                     Application.SBO_Application.SetStatusBarMessage(msgError + " - " + Tools.Company.GetLastErrorDescription(), SAPbouiCOM.BoMessageTime.bmt_Short, true);   //oCompany.GetLastErrorDescription()
             }
-        }
+        }*/
         public static int SetOperation()
         {
             int operation = 0;
