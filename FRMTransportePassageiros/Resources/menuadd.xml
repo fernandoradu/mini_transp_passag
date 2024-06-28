@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Application>
+	<Menus>
+		<action type="add">
+			<Menu Checked="0" Enabled="1" FatherUID="43520" Position="-1" String="Transporte de Passageiros" Type="2" UniqueID="mnu_Transp" Image="%path%\Imagens\bus-15.png">
+				<Menus>
+					<action type="add">						
+						<Menu Checked="0" Enabled="1" FatherUID="mnu_Transp" Position="-1" String="Cadastro de Localidade" Type="1" UniqueID="mnu_Locali"/>
+						<Menu Checked="0" Enabled="1" FatherUID="mnu_Transp" Position="-1" String="Cadastro de Linhas" Type="1" UniqueID="mnu_Linha"/>
+						<Menu Checked="0" Enabled="1" FatherUID="mnu_Transp" Position="-1" String="Cadastro de Horários" Type="1" UniqueID="mnu_Horario"/>
+						<Menu Checked="0" Enabled="1" FatherUID="mnu_Transp" Position="-1" String="Cadastro de Viagens" Type="1" UniqueID="mnu_Viagem"/>
+					</action>
+				</Menus>
+			</Menu>
+		</action>
+	</Menus>
+</Application>
+
