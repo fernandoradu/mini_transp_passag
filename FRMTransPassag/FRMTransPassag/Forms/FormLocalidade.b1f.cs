@@ -48,14 +48,15 @@ namespace FRMTransPassag.Forms
             this.UIAPIRawForm.EnableMenu("1288", true); //Seta para ir ao próximo registro
             this.UIAPIRawForm.EnableMenu("1289", true); //Seta para ir ao registro anterior
             this.UIAPIRawForm.EnableMenu("1291", true); //Seta para ir ao último registro
+            //this.UIAPIRawForm.SupportedModes = (int)SAPbouiCOM.BoAutoFormMode.afm_All;
             //FormLocalidade.SetOperation();
         }
         private void btnConfirm_PressedBefore(object sboObject, SAPbouiCOM.SBOItemEventArg pVal, out bool BubbleEvent)
         {
             BubbleEvent = true;
-            
+
             string errorMessage = "";
-            if ( string.IsNullOrEmpty(txtLocali.String))
+            if (string.IsNullOrEmpty(txtLocali.String))
             {
                 BubbleEvent = false;
                 errorMessage = "O campo Id. Localidade não foi preenchido";
@@ -74,14 +75,44 @@ namespace FRMTransPassag.Forms
             Localidade localidade = new Localidade();
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
 
-            if (Application.SBO_Application.Forms.ActiveForm.UniqueID == "FRMLocal")
+            if (form.UniqueID == "FRMLocal" && pVal.ItemUID == "1")
             {
                 localidade.FormToRepository(form);
-                localidade.ManipulateData(operation);
+
+                switch (form.Mode)
+                {
+                    case SAPbouiCOM.BoFormMode.fm_FIND_MODE:
+                        break;
+                    case SAPbouiCOM.BoFormMode.fm_OK_MODE:
+                        break;
+                    case SAPbouiCOM.BoFormMode.fm_UPDATE_MODE:
+                        localidade.ManipulateData(2);
+                        break;
+                    case SAPbouiCOM.BoFormMode.fm_ADD_MODE:
+
+                        localidade.ManipulateData(1);
+                        
+                        //Se for inclusão de registro, roda novamente a query do objeto RecordSet
+                        Tools.UserTabNavigator.Setup();
+                        
+                        break;
+                    
+                    case SAPbouiCOM.BoFormMode.fm_VIEW_MODE:
+                        break;
+                    case SAPbouiCOM.BoFormMode.fm_PRINT_MODE:
+                        break;
+                    case SAPbouiCOM.BoFormMode.fm_EDIT_MODE:
+                        break;
+                    case SAPbouiCOM.BoFormMode.fm_ARCHIVE_MODE:
+                        break;
+                    default:
+                        break;
+                }
+
+
+           
             }
-            //FormLocalidade.HandlingRegister(Tools.Company, (UserTable)Tools.Company.UserTables.Item("TB_LOCALIDADE"),
-            //    (Recordset)Tools.Company.GetBusinessObject(BoObjectTypes.BoRecordset), FormLocalidade.SetOperation(),
-            //    txtLocali.String, txtNome.String);
+           
 
         }
 
@@ -97,7 +128,7 @@ namespace FRMTransPassag.Forms
                 };
 
                 Tools.SetUserTableNavigator("@TB_LOCALIDADE");
-                Tools.UserTabNavigator.QueryToRecord(fields);
+                Tools.UserTabNavigator.QueryToRecord(ref fields, fields);
             }
             operation = Tools.UserTabNavigator.RunningOperation == null ? 0 : Tools.UserTabNavigator.RunningOperation;
 

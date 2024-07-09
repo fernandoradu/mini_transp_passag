@@ -16,8 +16,8 @@ namespace FRMTransPassag.Repositories
             if ( Tools.Company == null )
             {
                 Tools.SetUICompany();
-                this.TabLinhas = Tools.Company.UserTables.Item("@TB_LINHA");
-                this.TabSecLinhas = Tools.Company.UserTables.Item("@TB_SECLINHA");
+                this.TabLinhas = Tools.Company.UserTables.Item("TB_LINHA");
+                this.TabSecLinhas = Tools.Company.UserTables.Item("TB_SECLINHA");
             }
         }
         public void FormToRepository(Form form)

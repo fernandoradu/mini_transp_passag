@@ -16,8 +16,9 @@ namespace FRMTransPassag.Repositories
             if (Tools.Company == null)
             {
                 Tools.SetUICompany();
-                this.TabLocalidade = Tools.Company.UserTables.Item("@TB_LOCALIDADE");
             }
+            
+            this.TabLocalidade = Tools.Company.UserTables.Item("TB_LOCALIDADE");
 
             if (codigo != "")
                 this.Code = codigo;
@@ -30,8 +31,6 @@ namespace FRMTransPassag.Repositories
         {
             bool ret = false;
 
-            this.TabLocalidade.GetByKey(this.Code);
-
             this.TabLocalidade.Code = this.Code;
             this.TabLocalidade.Name = this.Name;
 
@@ -41,10 +40,12 @@ namespace FRMTransPassag.Repositories
             }
             else if (operation == 2)   //2 - update
             {
+                this.TabLocalidade.GetByKey(this.Code);
                 ret = this.TabLocalidade.Update() == 0;
             }
             else if (operation == 3)   //3 - delete
             {
+                this.TabLocalidade.GetByKey(this.Code);
                 ret = this.TabLocalidade.Remove() == 0;
             }
             return ret;

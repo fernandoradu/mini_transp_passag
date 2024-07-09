@@ -78,7 +78,7 @@ namespace FRMTransPassag
                 case "mnu_Locali":
             
                     Tools.SetUserTableNavigator("@TB_LOCALIDADE");
-                    Tools.UserTabNavigator.QueryToRecord(fields);
+                    Tools.UserTabNavigator.QueryToRecord(ref fields,fields);
 
                     _formLocalidade = new FormLocalidade();
                     //System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
@@ -89,7 +89,7 @@ namespace FRMTransPassag
                 case "mnu_Linha":
 
                     Tools.SetUserTableNavigator("@TB_LINHA");
-                    Tools.UserTabNavigator.QueryToRecord(fields);
+                    Tools.UserTabNavigator.QueryToRecord(ref fields, fields);
 
                     _formLinha = new FormLinha();
                     //System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
@@ -133,70 +133,119 @@ namespace FRMTransPassag
                     break;
             }
 
-            InitFormData(Tools.UserTabNavigator.RunningOperation == 3);
+            InitFormData(Tools.UserTabNavigator.RunningOperation);
         }
-        private void InitFormData(bool exclui = false)
+        private void InitFormData(int operation = -1)
         {
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
+            bool exclui = false;
+            int howOperate = 0;
 
-            if (!exclui)
+            //Definindo o modo em que o formulário deve trabalhar conforme a chamada do método
+            //InitFormData(). A variável howOperate pode ser:
+            //0 - Somente visualiza / pesquisa [pensar melhor nisto aqui]
+            //1 - Adiciona novo registro
+            //2 - Atualiza registro posicionado
+            //3 - Remove (exclui) registro posicionado
+            if (operation < 0 && Tools.UserTabNavigator.RunningOperation >= 0)
+                howOperate = Tools.UserTabNavigator.RunningOperation;
+            else if (operation >= 0)
+                howOperate = operation;
+
+            switch (howOperate)  
             {
-                if (Tools.UserTabNavigator.UserTableName == "@TB_LOCALIDADE" && form.UniqueID == "FRMLocal")
-                {
-                    if (Tools.UserTabNavigator.RunningOperation == 1)   //Inclusão de dados, inicializa com os campos em branco
-                    {
-                        form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Code", 0, "");
-                        form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Name", 0, "");
-                    }
-                    else
-                    {
-                        form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Code", 0, Tools.UserTabNavigator.RecordGetValue("Code").ToString());
-                        form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Name", 0, Tools.UserTabNavigator.RecordGetValue("Name").ToString());
-                    }
-                }
-                else if (Tools.UserTabNavigator.UserTableName == "@TB_LINHA" && form.UniqueID == "FRMLinha")
-                {
+                case 0:
+                    form.Mode = (SAPbouiCOM.BoFormMode)SAPbouiCOM.BoFormMode.fm_OK_MODE; 
+                    break;
+                case 1:
+                    form.Mode = (SAPbouiCOM.BoFormMode)SAPbouiCOM.BoFormMode.fm_ADD_MODE;
+                    break;
+                case 2:
+                    form.Mode = (SAPbouiCOM.BoFormMode)SAPbouiCOM.BoFormMode.fm_UPDATE_MODE;
+                    break;
+                case 3:
+                    exclui = true;
+                    break;
+            }
+            
+            if (Tools.UserTabNavigator.UserTableName == "@TB_LOCALIDADE" && form.UniqueID == "FRMLocal")
+            {
+                this.HandleLocalidade(form, exclui);
+            }
+            else if (Tools.UserTabNavigator.UserTableName == "@TB_LINHA" && form.UniqueID == "FRMLinha")
+            {
 
+            }
+            else if (Tools.UserTabNavigator.UserTableName == "@TB_HORARIO" && form.UniqueID == "FRMHora")
+            {
+
+            }            
+            
+        }
+        private void HandleLocalidade(SAPbouiCOM.Form form, bool exclui = false)
+        {
+            if ( !exclui )
+            {
+                if (Tools.UserTabNavigator.RunningOperation == 1)   //Inclusão de dados, inicializa com os campos em branco
+                {
+                    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Code", 0, "");
+                    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Name", 0, "");
                 }
-                //TODO: Preparar para os demais formulários
+                else
+                {
+                    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Code", 0, Tools.UserTabNavigator.RecordGetValue("Code").ToString());
+                    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Name", 0, Tools.UserTabNavigator.RecordGetValue("Name").ToString());
+                }
             }
             else
             {
-                //Exclusão de registro
-                if (form.UniqueID == "FRMLocal")
+                if (Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1) //1-Confirma, 2-Cancelar
                 {
-                    if (Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1) //1-Confirma, 2-Cancelar
+                    if (_formLocalidade != null)
                     {
-                        if ( _formLocalidade != null)
-                        {
-                            string Code = form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").GetValue("Code", 0);
-                            string Name = form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").GetValue("Name", 0);
-                            
-                            Localidade localidade = new Localidade(Code,Name);
-                            localidade.ManipulateData(Tools.UserTabNavigator.RunningOperation);
-                        }
-                            //FormLocalidade.HandlingRegister(Tools.Company, (UserTable)Tools.Company.UserTables.Item("TB_LOCALIDADE"),
-                            //    (Recordset)Tools.Company.GetBusinessObject(BoObjectTypes.BoRecordset), 
-                            //    FormLocalidade.SetOperation(),
-                            //    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").GetValue("Code",0), 
-                            //    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").GetValue("Name", 0));
+                        string Code = form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").GetValue("Code", 0);
+                        string Name = form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").GetValue("Name", 0);
+
+                        Localidade localidade = new Localidade(Code, Name);
+                        localidade.ManipulateData(Tools.UserTabNavigator.RunningOperation);
                     }
 
                 }
-                else if (form.UniqueID == "FRMLinha")
+            }
+        }
+        private void HandleLinha(SAPbouiCOM.Form form, bool exclui = false)
+        {
+            if ( !exclui )
+            {
+                if (Tools.UserTabNavigator.RunningOperation == 1)   //Inclusão de dados, inicializa com os campos em branco
                 {
-                    //TODO: Tratamento para exclusão do cadastro de Linha
+                    form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Code", 0, "");
+                    form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Name", 0, "");
                 }
-                else if (form.UniqueID == "FRMHorar")
+                else
                 {
-                    //TODO: Tratamento para exclusão do cadastro de Linha
-                }
-                else if (form.UniqueID == "FRMViagem")
-                {
-                    //TODO: Tratamento para exclusão do cadastro de Linha
+                    form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Code", 0, Tools.UserTabNavigator.RecordGetValue("Code").ToString());
+                    form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Name", 0, Tools.UserTabNavigator.RecordGetValue("Name").ToString());
+
+                    //todo: Carregar a Matrix
                 }
             }
+            else
+            {
+                if (Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1) //1-Confirma, 2-Cancelar
+                {
+                    if (_formLocalidade != null)
+                    {
+                        string Code = form.DataSources.DBDataSources.Item("@TB_LINHA").GetValue("Code", 0);
+                        string Name = form.DataSources.DBDataSources.Item("@TB_LINHA").GetValue("Name", 0);
+                        //Todo: Carregar a Matrix
 
+                        Linha linha = new Linha();
+                        linha.ManipulateData(Tools.UserTabNavigator.RunningOperation);
+                    }
+
+                }
+            }
         }
         private FormLocalidade _formLocalidade;
         private FormLinha _formLinha;

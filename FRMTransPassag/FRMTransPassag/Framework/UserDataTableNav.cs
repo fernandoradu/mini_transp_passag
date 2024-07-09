@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SAPbouiCOM.Framework;
 using SAPbobsCOM;
+using FRMTransPassag.Framework.Classes;
 
 namespace FRMTransPassag.Framework
 {
@@ -34,7 +35,7 @@ namespace FRMTransPassag.Framework
             }
             catch (Exception ex)
             {
-                throw;
+                Application.SBO_Application.SetStatusBarMessage(ex.Message,SAPbouiCOM.BoMessageTime.bmt_Short);
             }
         }
         public void NextRecord()
@@ -112,10 +113,11 @@ namespace FRMTransPassag.Framework
             
             return anyValue;
         }
-        public void QueryToRecord(string[] fields = null, string table = null)
+        public void QueryToRecord(ref string[] indexFields, string[] fields = null, string table = null)
         {
             StringBuilder query = new StringBuilder();
-            
+            bool hasOrderOk = indexFields != null;
+
             if (string.IsNullOrEmpty(_storedQuery) || this.UserTableName != table)
             {
                 if (table != null && this.UserTableName != table)
@@ -128,14 +130,29 @@ namespace FRMTransPassag.Framework
                     for (int ind = 0; ind <= fields.Length - 1; ind++)
                     {
                         query.AppendFormat("\"{0}\"" + (ind < fields.Length - 1 ? ", " : " "), fields[ind]);
+                        
+                        if ( fields[ind].Contains("Code") && !hasOrderOk )
+                        {
+                            indexFields = new string[] { fields[ind] };
+                            hasOrderOk = true;
+                        }
                     }
                 }
                 else
                     query.Append("* ");
 
                 query.Append("FROM ");
-                query.AppendFormat("\"{0}\" T0", UserTableName);
+                query.AppendFormat("\"{0}\" T0 ", UserTableName);
 
+                if ( hasOrderOk )
+                {
+                    query.Append("ORDER BY ");
+
+                    for (int i = 0; i <= indexFields.Length-1; i++)
+                    {
+                        query.AppendFormat("\"{0}\"" + (i < indexFields.Length - 1 ? ", " : " "), indexFields[i]);
+                    }
+                }
                 _storedQuery = query.ToString();
             }
 

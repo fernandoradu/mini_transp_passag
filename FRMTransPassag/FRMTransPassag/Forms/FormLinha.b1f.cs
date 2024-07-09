@@ -126,7 +126,7 @@ namespace FRMTransPassag.Forms
                 };
 
                 Tools.SetUserTableNavigator("@TB_LINHA");
-                Tools.UserTabNavigator.QueryToRecord(fields);
+                Tools.UserTabNavigator.QueryToRecord(ref fields,fields);
             }
             operation = Tools.UserTabNavigator.RunningOperation == null ? 0 : Tools.UserTabNavigator.RunningOperation;
 
