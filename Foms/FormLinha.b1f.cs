@@ -29,10 +29,22 @@ namespace FRMTransportePassageiros.Foms
             this.btnCancelar = ((SAPbouiCOM.Button)(this.GetItem("2").Specific));
             this.btnConfirmar = ((SAPbouiCOM.Button)(this.GetItem("1").Specific));
             this.btnConfirmar.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnConfirmar_PressedAfter);
-            this.mtxSecoes.Columns.Item("cLocOrig").DoubleClickAfter += new SAPbouiCOM._IColumnEvents_DoubleClickAfterEventHandler(Local_DoubleClickAfter);
+            this.mtxSecoes.Columns.Item("cLocOrig").DoubleClickAfter += new SAPbouiCOM._IColumnEvents_DoubleClickAfterEventHandler(this.Local_DoubleClickAfter);
+            this.TurnEditableMatrix();
+            // this.CreateGrid();  //this.TurnEditableMatrix();
             this.CreateChooseFromList();
             this.OnCustomInitialize();
 
+        }
+        private void CreateGrid()
+        {
+            
+        }
+        private void TurnEditableMatrix()
+        {
+            //this.mtxSecoes.Columns.Item("cLocOrig").Editable = true;
+            //Necessário criar uma linha para poder editar os dados.
+            this.mtxSecoes.AddRow();
         }
 
         /// <summary>
@@ -50,6 +62,7 @@ namespace FRMTransportePassageiros.Foms
             this.UIAPIRawForm.EnableMenu("1288", true); //Seta para ir ao próximo registro
             this.UIAPIRawForm.EnableMenu("1289", true); //Seta para ir ao registro anterior
             this.UIAPIRawForm.EnableMenu("1291", true); //Seta para ir ao último registro
+            //this.UIAPIRawForm.EnableMenu("1292", true); //Adicionar linha (Matrix ou Grid)
 
             //this.CreateChooseFromList();
 
@@ -157,11 +170,25 @@ namespace FRMTransportePassageiros.Foms
         }
         private void Local_DoubleClickAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
+            SAPbouiCOM.CellPosition cell = mtxSecoes.GetCellFocus();
+            string code = "";
+            
             Tools.ConsultaRegistro("@TB_LOCALIDADE");
+            code = (string)Tools.FormConsulta.GetLookUpReturn();
+
+            if ( !string.IsNullOrEmpty(code) )
+            {
+                if (cell.ColumnIndex == 2 && cell.ColumnIndex == 4)
+                {
+                    ((SAPbouiCOM.EditText)mtxSecoes.Columns.Item(cell.ColumnIndex).Cells.Item(cell.rowIndex).Specific).Value = code;
+                    mtxSecoes.FlushToDataSource();
+                }
+            }
         }
         private void txtLinha_DoubleClickAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
             Tools.ConsultaRegistro("@TB_LINHAS");
+            
         }
         
         private SAPbouiCOM.StaticText lblLinha;
@@ -170,8 +197,7 @@ namespace FRMTransportePassageiros.Foms
         private SAPbouiCOM.EditText txtNLinha;
         private SAPbouiCOM.Matrix mtxSecoes;
         private SAPbouiCOM.Button btnCancelar;
-        private SAPbouiCOM.Button btnConfirmar;
+        private SAPbouiCOM.Button btnConfirmar;        
         private string query = "";
-
     }
 }

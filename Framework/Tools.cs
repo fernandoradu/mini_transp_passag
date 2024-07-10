@@ -209,6 +209,7 @@ namespace FRMTransportePassageiros.Framework.Classes
 		public static UserDataTableNav UserTabNavigator = null;
 		public static FormConsultaRegistro FormConsulta;
 		public static string TableLookUp = "";
+		//public static object retConsulta = "";
 		//Propiedade estática com os formulários que poderam ser manipulados pelos eventos de menu da menu bar
 		//seta para o primeiro registro;
 		//seta para o registro anterior;
