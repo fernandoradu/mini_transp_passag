@@ -70,7 +70,7 @@ namespace FRMTransPassag.Forms
         }
         private void btnConfirm_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
-            int operation = Tools.UserTabNavigator != null ? Tools.UserTabNavigator.RunningOperation : FormLocalidade.SetOperation();
+            //int operation = Tools.UserTabNavigator != null ? Tools.UserTabNavigator.RunningOperation : FormLocalidade.SetOperation();
 
             Localidade localidade = new Localidade();
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
@@ -84,19 +84,14 @@ namespace FRMTransPassag.Forms
                     case SAPbouiCOM.BoFormMode.fm_FIND_MODE:
                         break;
                     case SAPbouiCOM.BoFormMode.fm_OK_MODE:
-                        break;
+                        goto case SAPbouiCOM.BoFormMode.fm_UPDATE_MODE;
                     case SAPbouiCOM.BoFormMode.fm_UPDATE_MODE:
                         localidade.ManipulateData(2);
                         break;
                     case SAPbouiCOM.BoFormMode.fm_ADD_MODE:
-
                         localidade.ManipulateData(1);
-                        
-                        //Se for inclusão de registro, roda novamente a query do objeto RecordSet
-                        Tools.UserTabNavigator.Setup();
-                        
+                        form.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE;
                         break;
-                    
                     case SAPbouiCOM.BoFormMode.fm_VIEW_MODE:
                         break;
                     case SAPbouiCOM.BoFormMode.fm_PRINT_MODE:
@@ -109,98 +104,20 @@ namespace FRMTransPassag.Forms
                         break;
                 }
 
-
-           
-            }
-           
-
-        }
-
-        public static int SetOperation()
-        {
-            int operation = 0;
-            if (Tools.UserTabNavigator == null)
-            {
-                string[] fields =
+                if (localidade.HasError)
+                    Application.SBO_Application.SetStatusBarMessage(localidade.ErrorMessage, SAPbouiCOM.BoMessageTime.bmt_Short);
+                else   //Se for inclusão de registro, roda novamente a query do objeto RecordSet{
                 {
-                    "Code",
-                    "Name"
-                };
-
-                Tools.SetUserTableNavigator("@TB_LOCALIDADE");
-                Tools.UserTabNavigator.QueryToRecord(ref fields, fields);
-            }
-            operation = Tools.UserTabNavigator.RunningOperation == null ? 0 : Tools.UserTabNavigator.RunningOperation;
-
-            return operation;
-        }
-       
-        public static void HandlingRegister(Company oCompany, UserTable tabLocalidade, Recordset oResultSet,
-            int operation, string codeLocalidade, string nomeLocalidade)
-        {
-            string CardCode = "";
-            string msgError = "";
-            
-            bool ret = true;
-            
-            string msgSuccess = "";
-            
-            string[,] seek = {
-                { "Code","'" + codeLocalidade + "'" }//txtLocali.String
-            };
-
-            //tabLocalidade = (UserTable)oCompany.UserTables.Item("TB_LOCALIDADE");
-            //oResultSet = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
-            SetOperation();
-
-            Tools.ExistReg(oResultSet, "@TB_LOCALIDADE", "Local", seek, "Code", out CardCode, out msgError);
-            //operation 0-View, 1-Insert, 2-Update, 3-Delete
-            if (operation == 2 || operation == 3 && !string.IsNullOrEmpty(CardCode))  //if (this.operation == 2 || this.operation == 3 && !string.IsNullOrEmpty(CardCode))
-            {
-                tabLocalidade.GetByKey(CardCode);
-                msgSuccess = operation == 2 ? "Registro atualizado com sucesso!" : "Registro excluído com sucesso!";   //this.operation
-                msgError = operation == 2 ? "Registro não foi atualizado!" : "Registro não foi excluído!"; //this.operation
-            }
-            else
-            {
-                tabLocalidade.Code = codeLocalidade;    //txtLocali.String;
-                msgSuccess = "Registro incluído com sucesso!";
-                msgError = "Registro não foi incluído!";
-            }
-
-            tabLocalidade.Name = nomeLocalidade;    //txtNome.String;
-
-            if (operation > 0) //se não for visualização //this.operation
-            {
-                if (operation == 1)    //inclusão  //this.operation
-                    ret = tabLocalidade.Add() == 0;
-                else if (operation == 2)   //atualização   //this.operation
-                    ret = tabLocalidade.Update() == 0;
-                else if (operation == 3)   //exclusão  //this.operation
-                    ret = tabLocalidade.Remove() == 0;
-
-                if (ret)
-                {
-                    //Tools.SetSBOFormActive(Application.SBO_Application.Forms.ActiveForm);
-                    if (operation == 1)    //this.operation
-                    {
-                        Tools.SetUserTableNavigator("@TB_LOCALIDADE");
-                        Tools.UserTabNavigator.Setup();
-                    }
-                    else if (operation == 3)   //this.operation
-                    {
-                        SAPbouiCOM.DBDataSource dBDataSource = Application.SBO_Application.Forms.ActiveForm.DataSources.DBDataSources.Item("@TB_LOCALIDADE");
-                        dBDataSource.SetValue("Code", 0, "");
-                        dBDataSource.SetValue("Name", 0, "");
-                    }
-
-                    CardCode = Tools.Company.GetNewObjectKey(); //oCompany.GetNewObjectKey();
-                    Application.SBO_Application.SetStatusBarMessage(msgSuccess, SAPbouiCOM.BoMessageTime.bmt_Short, false);
+                    Tools.UserTabNavigator.Setup();
+                    Application.SBO_Application.StatusBar.SetText(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+                    //Application.SBO_Application.SetStatusBarMessage(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short,false);
                 }
-                else
-                    Application.SBO_Application.SetStatusBarMessage(msgError + " - " + Tools.Company.GetLastErrorDescription(), SAPbouiCOM.BoMessageTime.bmt_Short, true);   //oCompany.GetLastErrorDescription()
+
             }
-        }
+           
+
+        }              
+        
         private SAPbouiCOM.StaticText lblLocali;
         private SAPbouiCOM.StaticText lblNome;
         private SAPbouiCOM.EditText txtLocali;

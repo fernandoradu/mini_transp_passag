@@ -29,41 +29,128 @@ namespace FRMTransPassag.Repositories
 
         public bool ManipulateData(int operation)
         {
-            bool ret = false;
-
-            this.TabLocalidade.Code = this.Code;
-            this.TabLocalidade.Name = this.Name;
+            bool manipulation = false;
 
             if (operation == 1) //1- Inserção de dados
             {
-                ret = this.TabLocalidade.Add() == 0;
+                this.TabLocalidade.Code = this.Code;
+                this.TabLocalidade.Name = this.Name;
             }
-            else if (operation == 2)   //2 - update
+            else if (operation == 2 || operation == 3)  //2- Atualização de dados, 3- Exclusão de dados
             {
                 this.TabLocalidade.GetByKey(this.Code);
-                ret = this.TabLocalidade.Update() == 0;
+                this.TabLocalidade.Name = this.Name;
             }
-            else if (operation == 3)   //3 - delete
+
+            switch (operation)
             {
-                this.TabLocalidade.GetByKey(this.Code);
-                ret = this.TabLocalidade.Remove() == 0;
-            }
-            return ret;
+                case 1: //Inserção de registro de nova localidade
+
+                    manipulation = this.TabLocalidade.Add() == 0;
+
+                    if (manipulation)
+                    {
+                        this.ResetError();
+
+                        this.OKMessage = "Inclusão do registro de localidade realizado com sucesso! ";
+                        this.OKMessage += "[Code: " + this.TabLocalidade.Code + "]";
+                    }
+                    else
+                    {
+                        this._error = true;
+                        this.ErrorMessage = "Não foi possível efetuar a inclusão da localidade! ";
+                        this.ErrorMessage += "[Code: " + this.TabLocalidade.Code + "]";
+                    }
+                    
+                    break;
+
+                case 2: //Atualização de localidade exsitente
+                    
+                    manipulation = this.TabLocalidade.Update() == 0;
+                    
+                    if (manipulation)
+                    {
+                        this.ResetError();
+                        this.OKMessage = "Atualização do registro de localidade efetuado com sucesso! ";
+                        this.OKMessage += "[Code: " + this.TabLocalidade.Code + "]";
+                    }
+                    else
+                    {
+                        this._error = true;
+                        this.ErrorMessage = "Não foi possível atualizar o cadastro da localidade! ";
+                        this.ErrorMessage += "[Code: " + this.TabLocalidade.Code + "]";
+                    }
+                   
+                    break;
+
+                case 3: //Remoção (exclusão) de uma localidade
+                    
+                    manipulation = this.TabLocalidade.Remove() == 0;
+                    
+                    if (manipulation)
+                    {
+                        this.ResetError();
+                        this.OKMessage = "Registro de localidade excluído com sucesso! ";
+                        this.OKMessage += "[Code: " + this.TabLocalidade.Code + "]";
+                    }
+                    else
+                    {
+                        this._error = true;
+                        this.ErrorMessage = "Não foi possível excluir o cadastro da localidade! ";
+                        this.ErrorMessage += "[Code: " + this.TabLocalidade.Code + "]";
+                    }
+                    
+                    break;
+
+                default:
+                    break;
+            }            
+
+            return this._error;
         }
         public void FormToRepository(Form form)
         {
-
-            this.Code = ((EditText)form.Items.Item("txtLocali").Specific).String;
-            this.Name = ((EditText)form.Items.Item("txtNome").Specific).String;
+            DBDataSource dsLocalidade = form.DataSources.DBDataSources.Item("@TB_LOCALIDADE");
+            
+            this.Code = dsLocalidade.GetValue("Code", 0);   //((EditText)form.Items.Item("txtLocali").Specific).String;
+            this.Name = dsLocalidade.GetValue("Name", 0);   //((EditText)form.Items.Item("txtNome").Specific).String;
         }
-        public void RepositoryToForm(Form form)
-        {
+        public void RepositoryToForm(Form form, bool newReg = false)
+        {            
+            DBDataSource dsLocalidade = form.DataSources.DBDataSources.Item("@TB_LOCALIDADE");
+            
+            try
+            {
+                if (!newReg)
+                {
+                    dsLocalidade.SetValue("Code", 0, this.Code);    //((EditText)form.Items.Item("txtLocali").Specific).Value = this.Code;
+                    dsLocalidade.SetValue("Name", 0, this.Name);    //((EditText)form.Items.Item("txtNome").Specific).Value = this.Name;
+                }
+                else
+                {
+                    dsLocalidade.SetValue("Code", 0, "");       //((EditText)form.Items.Item("txtLocali").Specific).Value = "";
+                    dsLocalidade.SetValue("Name", 0, "");       //((EditText)form.Items.Item("txtNome").Specific).Value = "";
+                }
 
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        public void ResetError()
+        {
+            this._error = false;
+            this.ErrorMessage = "";
         }
         #region Propriedades da Classe
+        private bool _error = false;
         public string Code { set; get; }
         public string Name { set; get; }
         public UserTable TabLocalidade = null;
+        public bool HasError { get { return this._error; } }
+        public string ErrorMessage { set; get; }
+        public string OKMessage { set; get; }
         #endregion
     }
 }

@@ -115,18 +115,30 @@ namespace FRMTransPassag
                     Tools.UserTabNavigator.FirstRecord();
                     break;
                 case "1288":    //Evento sobre a Seta para ir para o próximo registro
-                    Tools.UserTabNavigator.NextRecord();
+
+                    if (this._formInitialized)
+                        Tools.UserTabNavigator.NextRecord();
+                    else
+                        Tools.UserTabNavigator.FirstRecord();
+                    
                     break;
+
                 case "1289":    //Evento sobre a Seta para ir para o registro anterior
-                    Tools.UserTabNavigator.PreviousRecord();
+                    
+                    if (this._formInitialized)
+                        Tools.UserTabNavigator.PreviousRecord();
+                    else
+                        Tools.UserTabNavigator.FirstRecord();
+
                     break;
+
                 case "1291":    //Evento sobre a Seta para ir para o registro final
                     Tools.UserTabNavigator.LastRecord();
                     break;
-                case "1282":
+                case "1282":    //Evento sobre o menu (barra de ferramentas) Adicionar
                     Tools.UserTabNavigator.RunningOperation = 1;    //1-Operação de Inclusão de registro
                     break;
-                case "1283":
+                case "1283":    //Evento sobre a opção (botão direito do mouse) Remover
                     Tools.UserTabNavigator.RunningOperation = 3;    //3-Operação de Exclusão                    
                     break;
                 default:
@@ -140,6 +152,8 @@ namespace FRMTransPassag
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
             bool exclui = false;
             int howOperate = 0;
+
+            this._formInitialized = true;
 
             //Definindo o modo em que o formulário deve trabalhar conforme a chamada do método
             //InitFormData(). A variável howOperate pode ser:
@@ -184,34 +198,29 @@ namespace FRMTransPassag
         }
         private void HandleLocalidade(SAPbouiCOM.Form form, bool exclui = false)
         {
-            if ( !exclui )
+            Localidade localidade = new Localidade(Tools.UserTabNavigator.RecordGetValue("Code").ToString(),
+                                                    Tools.UserTabNavigator.RecordGetValue("Name").ToString());
+            
+            localidade.RepositoryToForm(form, Tools.UserTabNavigator.RunningOperation == 1);                
+            
+            if ( exclui && 
+                Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1 )
             {
-                if (Tools.UserTabNavigator.RunningOperation == 1)   //Inclusão de dados, inicializa com os campos em branco
+                localidade.ManipulateData(3);
+                
+                if (localidade.HasError)
+                    Application.SBO_Application.SetStatusBarMessage(localidade.ErrorMessage, SAPbouiCOM.BoMessageTime.bmt_Short);
+                else   //Se for inclusão de registro, roda novamente a query do objeto RecordSet
                 {
-                    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Code", 0, "");
-                    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Name", 0, "");
-                }
-                else
-                {
-                    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Code", 0, Tools.UserTabNavigator.RecordGetValue("Code").ToString());
-                    form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").SetValue("Name", 0, Tools.UserTabNavigator.RecordGetValue("Name").ToString());
-                }
-            }
-            else
-            {
-                if (Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1) //1-Confirma, 2-Cancelar
-                {
-                    if (_formLocalidade != null)
-                    {
-                        string Code = form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").GetValue("Code", 0);
-                        string Name = form.DataSources.DBDataSources.Item("@TB_LOCALIDADE").GetValue("Name", 0);
+                    Tools.UserTabNavigator.Setup();
+                    Tools.UserTabNavigator.LastRecord();
+                    localidade.RepositoryToForm(form, true);
+                    Application.SBO_Application.StatusBar.SetText(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+                    form.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE;
 
-                        Localidade localidade = new Localidade(Code, Name);
-                        localidade.ManipulateData(Tools.UserTabNavigator.RunningOperation);
-                    }
-
+                    this._formInitialized = false;
                 }
-            }
+            }            
         }
         private void HandleLinha(SAPbouiCOM.Form form, bool exclui = false)
         {
@@ -249,5 +258,6 @@ namespace FRMTransPassag
         }
         private FormLocalidade _formLocalidade;
         private FormLinha _formLinha;
+        private bool _formInitialized = false;
     }
 }

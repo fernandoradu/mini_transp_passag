@@ -81,13 +81,20 @@ namespace FRMTransPassag.Repositories
             }
             return ret;
         }
-        public void RepositoryToForm(Form form)
+        public void RepositoryToForm(Form form ,bool newReg = false)
+        {
+
+        }
+        public void ResetError()
         {
 
         }
         #region Propiedades da Classe
+        private bool _error = false;
         public string Code { get; set; }
         public string Name { get; set; }
+        public string ErrorMessage { get; set; }
+        public bool HasError { get { return this._error; } }
         public UserTable TabLinhas = null;
         public UserTable TabSecLinhas = null;
         public List<SecaoLinha> SecoesLinha { get; set; }
