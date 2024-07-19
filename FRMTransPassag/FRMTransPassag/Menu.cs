@@ -214,7 +214,7 @@ namespace FRMTransPassag
                 {
                     Tools.UserTabNavigator.Setup();
                     Tools.UserTabNavigator.LastRecord();
-                    localidade.RepositoryToForm(form, true);
+                    //localidade.RepositoryToForm(form, true);
                     Application.SBO_Application.StatusBar.SetText(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
                     form.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE;
 

@@ -41,7 +41,7 @@ namespace FRMTransPassag.Repositories
                 this.TabLocalidade.GetByKey(this.Code);
                 this.TabLocalidade.Name = this.Name;
             }
-
+            
             switch (operation)
             {
                 case 1: //Inserção de registro de nova localidade

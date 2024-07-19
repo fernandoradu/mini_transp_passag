@@ -109,12 +109,15 @@ namespace FRMTransPassag.Forms
                 else   //Se for inclusão de registro, roda novamente a query do objeto RecordSet{
                 {
                     Tools.UserTabNavigator.Setup();
+
+                    if (Tools.UserTabNavigator.RunningOperation == 1)
+                        Tools.UserTabNavigator.LastRecord();
+
                     Application.SBO_Application.StatusBar.SetText(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
                     //Application.SBO_Application.SetStatusBarMessage(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short,false);
                 }
 
-            }
-           
+            }          
 
         }              
         

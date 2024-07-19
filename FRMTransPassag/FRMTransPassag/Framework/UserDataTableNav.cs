@@ -88,6 +88,30 @@ namespace FRMTransPassag.Framework
                 throw;
             }
         }
+
+        public Fields SeekRecord(object[] seek)
+        {
+            Fields record = null;
+            bool found = false;
+
+            this._recUserTable.MoveFirst();
+
+            while ( !(this._recUserTable.EoF) )
+            {
+                if (this._recUserTable.Fields.Item(seek[0]).Value.ToString() == seek[1].ToString())
+                    found = true;
+                
+                if (found)
+                {
+                    record = this._recUserTable.Fields;
+                    break;
+                }
+
+                this._recUserTable.MoveNext();
+            }
+
+            return record;
+        }
         public dynamic RecordGetValue(object fieldSource)
         {
             dynamic anyValue = null;
