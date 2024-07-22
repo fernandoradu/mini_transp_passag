@@ -10,10 +10,11 @@ namespace FRMTransPassag.Repositories
     public interface IRepository
     {
         #region Métodos obrigatórios
+        bool ManipulateData(int operation);
         void FormToRepository(Form form);
         void RepositoryToForm(Form form, bool newReg);
         void ResetError();
-        bool ManipulateData(int operation);
+        void SetFormMode(Form form);
         #endregion
         //---------------------------------------
         #region Propriedades obrigatórias

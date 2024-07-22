@@ -212,11 +212,11 @@ namespace FRMTransPassag
                     Application.SBO_Application.SetStatusBarMessage(localidade.ErrorMessage, SAPbouiCOM.BoMessageTime.bmt_Short);
                 else   //Se for inclusão de registro, roda novamente a query do objeto RecordSet
                 {
+                    form.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE;
                     Tools.UserTabNavigator.Setup();
                     Tools.UserTabNavigator.LastRecord();
-                    //localidade.RepositoryToForm(form, true);
+                    
                     Application.SBO_Application.StatusBar.SetText(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
-                    form.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE;
 
                     this._formInitialized = false;
                 }

@@ -70,39 +70,15 @@ namespace FRMTransPassag.Forms
         }
         private void btnConfirm_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
-            //int operation = Tools.UserTabNavigator != null ? Tools.UserTabNavigator.RunningOperation : FormLocalidade.SetOperation();
-
             Localidade localidade = new Localidade();
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
 
             if (form.UniqueID == "FRMLocal" && pVal.ItemUID == "1")
             {
+                //Recupera as informações do formulário para o objeto de repositório da classe Localidade
                 localidade.FormToRepository(form);
-
-                switch (form.Mode)
-                {
-                    case SAPbouiCOM.BoFormMode.fm_FIND_MODE:
-                        break;
-                    case SAPbouiCOM.BoFormMode.fm_OK_MODE:
-                        goto case SAPbouiCOM.BoFormMode.fm_UPDATE_MODE;
-                    case SAPbouiCOM.BoFormMode.fm_UPDATE_MODE:
-                        localidade.ManipulateData(2);
-                        break;
-                    case SAPbouiCOM.BoFormMode.fm_ADD_MODE:
-                        localidade.ManipulateData(1);
-                        form.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE;
-                        break;
-                    case SAPbouiCOM.BoFormMode.fm_VIEW_MODE:
-                        break;
-                    case SAPbouiCOM.BoFormMode.fm_PRINT_MODE:
-                        break;
-                    case SAPbouiCOM.BoFormMode.fm_EDIT_MODE:
-                        break;
-                    case SAPbouiCOM.BoFormMode.fm_ARCHIVE_MODE:
-                        break;
-                    default:
-                        break;
-                }
+                //Manipula os dados recuperados, persistindo na base de dados, via DI-Api
+                localidade.SetFormMode(form);
 
                 if (localidade.HasError)
                     Application.SBO_Application.SetStatusBarMessage(localidade.ErrorMessage, SAPbouiCOM.BoMessageTime.bmt_Short);
@@ -110,11 +86,12 @@ namespace FRMTransPassag.Forms
                 {
                     Tools.UserTabNavigator.Setup();
 
-                    if (Tools.UserTabNavigator.RunningOperation == 1)
+                    if (Tools.UserTabNavigator.RunningOperation == 1)       //Inclusão
                         Tools.UserTabNavigator.LastRecord();
+                    else if (Tools.UserTabNavigator.RunningOperation == 2)  //Update
+                        Tools.UserTabNavigator.SeekRecord(new object[] { "Code", localidade.Code});
 
-                    Application.SBO_Application.StatusBar.SetText(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
-                    //Application.SBO_Application.SetStatusBarMessage(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short,false);
+                    Application.SBO_Application.StatusBar.SetText(localidade.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);                
                 }
 
             }          

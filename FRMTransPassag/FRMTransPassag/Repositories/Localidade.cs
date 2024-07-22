@@ -143,6 +143,33 @@ namespace FRMTransPassag.Repositories
             this._error = false;
             this.ErrorMessage = "";
         }
+        public void SetFormMode(Form form)
+        {
+            switch (form.Mode)
+            {
+                case SAPbouiCOM.BoFormMode.fm_FIND_MODE:
+                    break;
+                case SAPbouiCOM.BoFormMode.fm_OK_MODE:
+                    goto case SAPbouiCOM.BoFormMode.fm_UPDATE_MODE;
+                case SAPbouiCOM.BoFormMode.fm_UPDATE_MODE:
+                    this.ManipulateData(2);
+                    break;
+                case SAPbouiCOM.BoFormMode.fm_ADD_MODE:
+                    this.ManipulateData(1);
+                    form.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE;
+                    break;
+                case SAPbouiCOM.BoFormMode.fm_VIEW_MODE:
+                    break;
+                case SAPbouiCOM.BoFormMode.fm_PRINT_MODE:
+                    break;
+                case SAPbouiCOM.BoFormMode.fm_EDIT_MODE:
+                    break;
+                case SAPbouiCOM.BoFormMode.fm_ARCHIVE_MODE:
+                    break;
+                default:
+                    break;
+            }
+        }
         #region Propriedades da Classe
         private bool _error = false;
         public string Code { set; get; }
