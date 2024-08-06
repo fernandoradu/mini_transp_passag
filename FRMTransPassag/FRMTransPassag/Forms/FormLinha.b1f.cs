@@ -30,23 +30,15 @@ namespace FRMTransPassag.Forms
             this.btnConfirmar = ((SAPbouiCOM.Button)(this.GetItem("1").Specific));
             this.btnConfirmar.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnConfirmar_PressedAfter);
             this.mtxSecoes.Columns.Item("cLocOrig").DoubleClickAfter += new SAPbouiCOM._IColumnEvents_DoubleClickAfterEventHandler(this.Local_DoubleClickAfter);
-            this.TurnEditableMatrix();
+            this.mtxSecoes.KeyDownBefore += new SAPbouiCOM._IMatrixEvents_KeyDownBeforeEventHandler(this.mtxSecoes_KeyDownBefore);
+            this.mtxSecoes.KeyDownAfter += new SAPbouiCOM._IMatrixEvents_KeyDownAfterEventHandler(this.mtxSecoes_KeyDownAfter);
+            //this.TurnEditableMatrix();
             // this.CreateGrid();  //this.TurnEditableMatrix();
             this.CreateChooseFromList();
             this.OnCustomInitialize();
 
         }
-        private void CreateGrid()
-        {
-            
-        }
-        private void TurnEditableMatrix()
-        {
-            //this.mtxSecoes.Columns.Item("cLocOrig").Editable = true;
-            //Necessário criar uma linha para poder editar os dados.
-            this.mtxSecoes.AddRow();
-        }
-
+        
         /// <summary>
         /// Initialize form event. Called by framework before form creation.
         /// </summary>
@@ -62,49 +54,55 @@ namespace FRMTransPassag.Forms
             this.UIAPIRawForm.EnableMenu("1288", true); //Seta para ir ao próximo registro
             this.UIAPIRawForm.EnableMenu("1289", true); //Seta para ir ao registro anterior
             this.UIAPIRawForm.EnableMenu("1291", true); //Seta para ir ao último registro
+            this.UIAPIRawForm.EnableMenu("1292", true); //Inserir Linha
+            this.LoadMatrixSecao();
             //this.UIAPIRawForm.EnableMenu("1292", true); //Adicionar linha (Matrix ou Grid)
 
             //this.CreateChooseFromList();
 
         }
-        public void LoadMatrixSecao(string idLinha)
+        public void LoadMatrixSecao(string idLinha = null)
         {
-            if (query == "")
+            if ( this.query == "" )
             {
                 StringBuilder buildQuery = new StringBuilder();
 
                 buildQuery.Append("SELECT");
-                buildQuery.Append("T0.\"Code\",");
-                buildQuery.Append("\"U_CodeLinha\",");
-                buildQuery.Append("\"U_LocalPartida\",");
-                buildQuery.Append("\"U_LocalChegada\",");
-                buildQuery.Append("T2.\"Name\" \"NomeLocalOrig\",");
-                buildQuery.Append("T3.\"Name\" \"NomeLocalDest\"");
+                buildQuery.Append(" T0.\"Code\",");
+                buildQuery.Append(" T0.\"U_CodeLinha\",");
+                buildQuery.Append(" T0.\"U_LocalPartida\",");
+                buildQuery.Append(" T0.\"U_LocalChegada\",");
+                buildQuery.Append(" T2.\"Name\" \"NomeLocalOrig\",");
+                buildQuery.Append(" T3.\"Name\" \"NomeLocalDest\" ");
                 buildQuery.Append("FROM");
-                buildQuery.Append("\"@TB_SECLINHA\" T0");
+                buildQuery.Append(" \"@TB_SECLINHA\" T0 ");
                 buildQuery.Append("INNER JOIN");
-                buildQuery.Append("\"@TB_LINHA\" T1");
+                buildQuery.Append(" \"@TB_LINHA\" T1 ");
                 buildQuery.Append("ON");
-                buildQuery.Append("T1.\"Code\" = T0.\"U_CodeLinha\"");
+                buildQuery.Append(" T1.\"Code\" = T0.\"U_CodeLinha\" ");
                 buildQuery.Append("INNER JOIN");
-                buildQuery.Append("\"@TB_LOCALIDADE\" T2");
+                buildQuery.Append(" \"@TB_LOCALIDADE\" T2 ");
                 buildQuery.Append("ON");
-                buildQuery.Append("T2.\"Code\" = T0.\"U_LocalPartida\"");
+                buildQuery.Append(" T2.\"Code\" = T0.\"U_LocalPartida\" ");
                 buildQuery.Append("INNER JOIN");
-                buildQuery.Append("\"@TB_LOCALIDADE\" T3");
+                buildQuery.Append(" \"@TB_LOCALIDADE\" T3 ");
                 buildQuery.Append("ON");
-                buildQuery.Append("T3.\"Code\" = T0.\"U_LocalChegada\"");
+                buildQuery.Append(" T3.\"Code\" = T0.\"U_LocalChegada\" ");
                 buildQuery.Append("WHERE");
-                buildQuery.AppendFormat("T0.\"U_CodeLinha\" = '{0}'", idLinha);
+                
+                if (idLinha != null)
+                    buildQuery.AppendFormat("   T0.\"U_CodeLinha\" = '{0}'", idLinha);
+                else  // query que não trará resultado
+                    buildQuery.AppendFormat("   T0.\"U_CodeLinha\" = '{0}'", "(ZZZZ)" + idLinha + "(ZZZZ)");
 
                 query = buildQuery.ToString();
 
                 this.UIAPIRawForm.DataSources.DataTables.Item("dtSecoes").ExecuteQuery(this.query);
 
                 mtxSecoes.Columns.Item("cCode").DataBind.Bind("dtSecoes", "Code");
-                mtxSecoes.Columns.Item("cLocOrig").DataBind.Bind("dtSecoes", "IdLocalOrig");
-                mtxSecoes.Columns.Item("cNLocOri").DataBind.Bind("dtSecoes", "NomeLocalOrig");
-                mtxSecoes.Columns.Item("cLocDest").DataBind.Bind("dtSecoes", "IdLocalDest");
+                mtxSecoes.Columns.Item("cLocOrig").DataBind.Bind("dtSecoes", "U_LocalPartida");
+                mtxSecoes.Columns.Item("cNLocOri").DataBind.Bind("dtSecoes", "U_LocalChegada");
+                mtxSecoes.Columns.Item("cLocDest").DataBind.Bind("dtSecoes", "NomeLocalOrig");
                 mtxSecoes.Columns.Item("cNLocDes").DataBind.Bind("dtSecoes", "NomeLocalDest");
 
                 this.UIAPIRawForm.Freeze(true);
@@ -113,6 +111,8 @@ namespace FRMTransPassag.Forms
 
                 this.UIAPIRawForm.Freeze(false);
             }
+            //Necessário criar uma linha para poder editar os dados.
+            this.AddSecao();
         }
         public static int SetOperation()
         {
@@ -131,6 +131,35 @@ namespace FRMTransPassag.Forms
             operation = Tools.UserTabNavigator.RunningOperation == null ? 0 : Tools.UserTabNavigator.RunningOperation;
 
             return operation;
+        }
+        public void AddSecao()
+        {
+            SAPbouiCOM.EditText cellCode = null; 
+            string code = "000001";
+            int lastRow = 0;
+            int currentRow = 0;
+            string lastCode = "";
+
+            lastRow = mtxSecoes.RowCount;
+            
+            if (lastRow > 0)
+            {
+                currentRow = mtxSecoes.GetCellFocus().rowIndex;
+                cellCode = (SAPbouiCOM.EditText)mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific;
+                lastCode = cellCode.Value;
+            
+                if (lastCode != "")
+                    code = Tools.StringNext(lastCode);
+            }
+
+            if ( currentRow == lastRow)
+            {
+                this.mtxSecoes.AddRow();
+                lastRow = mtxSecoes.RowCount;
+                ((SAPbouiCOM.EditText)this.mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific).Value = code;
+            }            
+
+            return;
         }
         private void btnConfirmar_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
@@ -190,7 +219,16 @@ namespace FRMTransPassag.Forms
             Tools.ConsultaRegistro("@TB_LINHA");
             
         }
-        
+        private void mtxSecoes_KeyDownBefore(object sboObject, SAPbouiCOM.SBOItemEventArg pVal, out bool BubbleEvent)
+        {
+            BubbleEvent = true;
+            if (pVal.CharPressed == 40) //40 é igual a seta para baixo. 38 é seta para cima
+                this.AddSecao();
+        }
+        private void mtxSecoes_KeyDownAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
+        {
+
+        }
         private SAPbouiCOM.StaticText lblLinha;
         private SAPbouiCOM.EditText txtLinha;
         private SAPbouiCOM.StaticText lblNLinha;

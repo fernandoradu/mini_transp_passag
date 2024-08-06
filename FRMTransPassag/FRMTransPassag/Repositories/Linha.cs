@@ -89,6 +89,10 @@ namespace FRMTransPassag.Repositories
         {
 
         }
+        public void SetFormMode(Form form)
+        {
+
+        }
         #region Propiedades da Classe
         private bool _error = false;
         public string Code { get; set; }
