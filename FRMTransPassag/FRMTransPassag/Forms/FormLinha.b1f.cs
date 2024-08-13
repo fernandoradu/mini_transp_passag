@@ -9,7 +9,7 @@ using System.Text;
 namespace FRMTransPassag.Forms
 {
     [FormAttribute("FRMTransPassag.Forms.FormLinha", "Forms/FormLinha.b1f")]
-    class FormLinha : UserFormBase
+    public class FormLinha : UserFormBase
     {
         public FormLinha()
         {
@@ -20,32 +20,37 @@ namespace FRMTransPassag.Forms
         /// </summary>
         public override void OnInitializeComponent()
         {
+            SAPbouiCOM.EditText txtLocOrig = null;
+            SAPbouiCOM.EditText txtLocDest = null;
+
             this.lblLinha = ((SAPbouiCOM.StaticText)(this.GetItem("lblLinha").Specific));
             this.txtLinha = ((SAPbouiCOM.EditText)(this.GetItem("txtLinha").Specific));
-            this.txtLinha.DoubleClickAfter += new SAPbouiCOM._IEditTextEvents_DoubleClickAfterEventHandler(this.txtLinha_DoubleClickAfter);
             this.lblNLinha = ((SAPbouiCOM.StaticText)(this.GetItem("lblNLinha").Specific));
             this.txtNLinha = ((SAPbouiCOM.EditText)(this.GetItem("txtNLinha").Specific));
-            this.mtxSecoes = ((SAPbouiCOM.Matrix)(this.GetItem("mtxSecoes").Specific));
             this.btnCancelar = ((SAPbouiCOM.Button)(this.GetItem("2").Specific));
             this.btnConfirmar = ((SAPbouiCOM.Button)(this.GetItem("1").Specific));
             this.btnConfirmar.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnConfirmar_PressedAfter);
-            this.mtxSecoes.Columns.Item("cLocOrig").DoubleClickAfter += new SAPbouiCOM._IColumnEvents_DoubleClickAfterEventHandler(this.Local_DoubleClickAfter);
+            
+            this.mtxSecoes = ((SAPbouiCOM.Matrix)(this.GetItem("mtxSecoes").Specific));
             this.mtxSecoes.KeyDownBefore += new SAPbouiCOM._IMatrixEvents_KeyDownBeforeEventHandler(this.mtxSecoes_KeyDownBefore);
             this.mtxSecoes.KeyDownAfter += new SAPbouiCOM._IMatrixEvents_KeyDownAfterEventHandler(this.mtxSecoes_KeyDownAfter);
-            //this.TurnEditableMatrix();
-            // this.CreateGrid();  //this.TurnEditableMatrix();
-            this.CreateChooseFromList();
+            this.mtxSecoes.DoubleClickAfter += new SAPbouiCOM._IMatrixEvents_DoubleClickAfterEventHandler(this.Local_DoubleClickAfter);
+
             this.OnCustomInitialize();
 
         }
-        
+
+        private void MtxSecoes_ChooseFromListAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Initialize form event. Called by framework before form creation.
         /// </summary>
         public override void OnInitializeFormEvents()
         {
         }
-
         private void OnCustomInitialize()
         {
             this.UIAPIRawForm.EnableMenu("1282", true); //Adicionar novo registro
@@ -57,8 +62,6 @@ namespace FRMTransPassag.Forms
             this.UIAPIRawForm.EnableMenu("1292", true); //Inserir Linha
             this.LoadMatrixSecao();
             //this.UIAPIRawForm.EnableMenu("1292", true); //Adicionar linha (Matrix ou Grid)
-
-            //this.CreateChooseFromList();
 
         }
         public void LoadMatrixSecao(string idLinha = null)
@@ -146,15 +149,17 @@ namespace FRMTransPassag.Forms
             {
                 currentRow = mtxSecoes.GetCellFocus().rowIndex;
                 cellCode = (SAPbouiCOM.EditText)mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific;
-                lastCode = cellCode.Value;
-            
-                if (lastCode != "")
-                    code = Tools.StringNext(lastCode);
+                
+                lastCode = cellCode.Value;            
             }
 
             if ( currentRow == lastRow)
             {
+                if (lastCode != "")
+                    code = Tools.StringNext(lastCode);
+                
                 this.mtxSecoes.AddRow();
+
                 lastRow = mtxSecoes.RowCount;
                 ((SAPbouiCOM.EditText)this.mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific).Value = code;
             }            
@@ -174,51 +179,20 @@ namespace FRMTransPassag.Forms
                 linha.ManipulateData(operation);
             }
         }
-
-        private void CreateChooseFromList()
-        {
-            //SAPbouiCOM.Form oForm = Application.SBO_Application.Forms.ActiveForm;
-
-            //// Criar a ChooseFromList
-            //SAPbouiCOM.ChooseFromListCollection oCFLs = oForm.ChooseFromLists;
-            //SAPbouiCOM.ChooseFromListCreationParams oCFLCreationParams = (SAPbouiCOM.ChooseFromListCreationParams)Application.SBO_Application.CreateObject(SAPbouiCOM.BoCreatableObjectType.cot_ChooseFromListCreationParams);
-            //oCFLCreationParams.MultiSelection = false;
-            //oCFLCreationParams.ObjectType = "TB_LOCALIDADES"; // Nome da tabela de usuário
-            //oCFLCreationParams.UniqueID = "cflLocal";
-
-            //SAPbouiCOM.ChooseFromList oCFL = oCFLs.Add(oCFLCreationParams);
-
-            //// Associar a ChooseFromList ao campo no formulário
-            //SAPbouiCOM.Matrix matrix = (SAPbouiCOM.Matrix)oForm.Items.Item("mtxSecoes").Specific;
-            //SAPbouiCOM.EditText oEditText = (SAPbouiCOM.EditText)oForm.Items.Item("cLocOrig").Specific;
-            //oEditText.ChooseFromListUID = "cflLocal";
-            //oEditText.ChooseFromListAlias = "Code"; // Nome da coluna na tabela de usuário
-
-            // Configurar os eventos da ChooseFromList
-            //oEditText.ChooseFromListAfter += new SAPbouiCOM._IEditTextEvents_ChooseFromListAfterEventHandler(this.event_ChooseFromListAfter);
-        }
+               
         private void Local_DoubleClickAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
-            SAPbouiCOM.CellPosition cell = mtxSecoes.GetCellFocus();
-            string code = "";
-            
-            Tools.ConsultaRegistro("@TB_LOCALIDADE");
-            code = (string)Tools.FormConsulta.GetLookUpReturn();
-
-            if ( !string.IsNullOrEmpty(code) )
+            if (pVal.ColUID == "cLocOrig" || pVal.ColUID == "cLocDest")
             {
-                if (cell.ColumnIndex == 2 && cell.ColumnIndex == 4)
-                {
-                    ((SAPbouiCOM.EditText)mtxSecoes.Columns.Item(cell.ColumnIndex).Cells.Item(cell.rowIndex).Specific).Value = code;
-                    mtxSecoes.FlushToDataSource();
-                }
-            }
+                SAPbouiCOM.CellPosition cell = mtxSecoes.GetCellFocus();
+                string colCode = this.mtxSecoes.Columns.Item(cell.ColumnIndex).UniqueID;
+                string colName = colCode == "cLocOrig"? "cNLocOri" : "cNLocDes";
+
+                Tools.ConsultaRegistro(this,colCode,colName);
+            }         
+
         }
-        private void txtLinha_DoubleClickAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
-        {
-            Tools.ConsultaRegistro("@TB_LINHA");
-            
-        }
+        
         private void mtxSecoes_KeyDownBefore(object sboObject, SAPbouiCOM.SBOItemEventArg pVal, out bool BubbleEvent)
         {
             BubbleEvent = true;
@@ -237,5 +211,7 @@ namespace FRMTransPassag.Forms
         private SAPbouiCOM.Button btnCancelar;
         private SAPbouiCOM.Button btnConfirmar;        
         private string query = "";
+
+        public SAPbouiCOM.Matrix MatrizSecoes { get { return mtxSecoes; } }
     }
 }

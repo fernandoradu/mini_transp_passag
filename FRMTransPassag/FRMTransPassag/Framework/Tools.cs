@@ -1,4 +1,5 @@
-﻿using SAPbobsCOM;
+﻿using FRMTransPassag.Forms;
+using SAPbobsCOM;
 using SAPbouiCOM.Framework;
 using System;
 using System.Collections.Generic;
@@ -199,10 +200,20 @@ namespace FRMTransPassag.Framework.Classes
 				UserTabNavigator = new UserDataTableNav(table, Tools.Company);
 
         }
-		public static void ConsultaRegistro(string tableLookUp)
+		public static void ConsultaRegistro(object formCaller, string columnCode, string columnDescription)
         {
-			Tools.TableLookUp = tableLookUp;
-			Tools.FormConsulta = new FormConsultaRegistro();
+			Tools.FormCaller = formCaller;
+
+            switch (formCaller.GetType().Name)
+            {
+				case "FormLinha":	// formulário chamador da consulta é de cadastro de Linhas
+					Tools.TableLookUp = "@TB_LOCALIDADE";
+					Tools.FormConsulta = new FormConsultaRegistro((FormLinha)formCaller, columnCode, columnDescription);
+					break;
+				default:
+                    break;
+            }
+			
 			Tools.FormConsulta.Show();
         }
 
@@ -233,6 +244,7 @@ namespace FRMTransPassag.Framework.Classes
 		public static UserDataTableNav UserTabNavigator = null;
 		public static FormConsultaRegistro FormConsulta;
 		public static string TableLookUp = "";
+		public static object FormCaller = null;
 		//public static object retConsulta = "";
 		//seta para o primeiro registro;
 		//seta para o registro anterior;

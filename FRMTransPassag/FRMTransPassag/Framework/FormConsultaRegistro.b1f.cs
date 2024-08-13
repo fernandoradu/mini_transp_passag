@@ -1,4 +1,5 @@
-﻿using FRMTransPassag.Framework.Classes;
+﻿using FRMTransPassag.Forms;
+using FRMTransPassag.Framework.Classes;
 using SAPbouiCOM.Framework;
 using System;
 using System.Collections.Generic;
@@ -10,34 +11,36 @@ namespace FRMTransPassag.Framework
     [FormAttribute("FRMTransPassag.Framework.FormConsultaRegistro", "Framework/FormConsultaRegistro.b1f")]
     public class FormConsultaRegistro : UserFormBase
     {
-        public FormConsultaRegistro()
+        public FormConsultaRegistro(FormLinha form, string colCode, string colName)
         {
-            
+            this.formCaller = form;
+            this.columnCode = colCode;
+            this.columnName = colName;
         }
-
+        //ToDo: Implementar o construtor para cada Formulário que efetua a chamada de consulta
+        //---------------- FIM ----------------
         /// <summary>
         /// Initialize components. Called by framework after form created.
         /// </summary>
         public override void OnInitializeComponent()
         {
-            // this.UIAPIRawForm.DataSources.DataTables.Add("DTConsul");
+            
             this.lblProcurar = ((SAPbouiCOM.StaticText)(this.GetItem("lblPesq").Specific));
             this.txtProcurar = ((SAPbouiCOM.EditText)(this.GetItem("Item_1").Specific));
             this.mtxConsulta = ((SAPbouiCOM.Matrix)(this.GetItem("mtxCons1").Specific));
             this.btnSelecionar = ((SAPbouiCOM.Button)(this.GetItem("btnSelec").Specific));
-            this.btnSelecionar.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnSelecionar_PressedAfter);
+            this.btnSelecionar.PressedBefore += new SAPbouiCOM._IButtonEvents_PressedBeforeEventHandler(this.btnConfirmar_PressedBefore);
             this.btnCancelar = ((SAPbouiCOM.Button)(this.GetItem("btnCanc1").Specific));
-            // this.dtConsulta = this.UIAPIRawForm.DataSources.DataTables.Item("DTConsul"); 
+            
             this.OnCustomInitialize();
 
         }
-
         /// <summary>
         /// Initialize form event. Called by framework before form creation.
         /// </summary>
         public override void OnInitializeFormEvents()
         {
-           //this.LoadAfter += new LoadAfterHandler(this.Form_LoadAfter);
+        
         }
         //Este método é essencial para inicialização dos componentes (ou itens de form)
         //que não foram, em especial, criados pela interface de design de tela.
@@ -52,7 +55,6 @@ namespace FRMTransPassag.Framework
         }
         public void SetQuery(bool reset = false, string[,] filtros = null)
         {
-
             if (query == "" || reset)
             {
                 StringBuilder buildQuery = new StringBuilder();
@@ -88,11 +90,12 @@ namespace FRMTransPassag.Framework
         {
             try
             {
+                //Execução da query de consulta
                 this.UIAPIRawForm.DataSources.DataTables.Item("DTCon1").ExecuteQuery(this.query);
-                //this.dtConsulta.ExecuteQuery(this.query);
+                //Faz o vínculo do datatable com a matriz
                 mtxConsulta.Columns.Item("cCodCon").DataBind.Bind("DTCon1", "Code");
                 mtxConsulta.Columns.Item("cNameCon").DataBind.Bind("DTCon1", "Name");
-
+                //Tamanho das colunas criadas de forma automática
                 mtxConsulta.AutoResizeColumns();
 
                 this.UIAPIRawForm.Freeze(true);
@@ -114,28 +117,36 @@ namespace FRMTransPassag.Framework
             this.MontaMatrizConsulta();
         }
 
-        private void btnSelecionar_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
+        private void btnConfirmar_PressedBefore(object sboObject, SAPbouiCOM.SBOItemEventArg pVal, out bool BubbleEvent)
         {
-            //((SAPbouiCOM.EditText)Matrix6.Columns.Item("Col_0").Cells.Item(pVal.Row).Specific).String
+            BubbleEvent = true;
+            
             if (mtxConsulta.GetCellFocus().rowIndex > 0)
+            {
+                SAPbouiCOM.Matrix mtxSecoes = this.formCaller.MatrizSecoes;
                 this.retConsReg = ((SAPbouiCOM.EditText)mtxConsulta.Columns.Item("cCodCon").Cells.Item(mtxConsulta.GetCellFocus().rowIndex).Specific).String;
+                this.retDescription = ((SAPbouiCOM.EditText)mtxConsulta.Columns.Item("cNameCon").Cells.Item(mtxConsulta.GetCellFocus().rowIndex).Specific).String;
+
+                ((SAPbouiCOM.EditText)mtxSecoes.Columns.Item(this.columnCode).Cells.Item(mtxSecoes.GetCellFocus().rowIndex).Specific).Value = this.retConsReg.ToString();
+                ((SAPbouiCOM.EditText)mtxSecoes.Columns.Item(this.columnName).Cells.Item(mtxSecoes.GetCellFocus().rowIndex).Specific).Value = this.retDescription.ToString();
+            }
             
             Application.SBO_Application.Forms.ActiveForm.Close();
-        }
-        public object GetLookUpReturn()
-        {
-            return this.retConsReg;
-        }
-
+        }     
+        
+        private string _userTable;
+        private string query;
+        private string[,] filter = null;
+        private string columnCode = "";
+        private string columnName = "";
         private SAPbouiCOM.StaticText lblProcurar;
         private SAPbouiCOM.EditText txtProcurar;
         private SAPbouiCOM.Matrix mtxConsulta;
         private SAPbouiCOM.Button btnSelecionar;
         private SAPbouiCOM.Button btnCancelar;
         private SAPbouiCOM.DataTable dtConsulta = null;
-        private string _userTable;
-        private string query;
-        private string[,] filter = null;
+        private dynamic formCaller = null;
         private object retConsReg = null;
+        private object retDescription = null;
     }
 }
