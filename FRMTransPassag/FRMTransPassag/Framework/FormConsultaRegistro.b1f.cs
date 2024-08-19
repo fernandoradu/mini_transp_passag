@@ -29,10 +29,10 @@ namespace FRMTransPassag.Framework
             this.txtProcurar = ((SAPbouiCOM.EditText)(this.GetItem("Item_1").Specific));
             this.mtxConsulta = ((SAPbouiCOM.Matrix)(this.GetItem("mtxCons1").Specific));
             this.btnSelecionar = ((SAPbouiCOM.Button)(this.GetItem("btnSelec").Specific));
-            this.btnSelecionar.PressedBefore += new SAPbouiCOM._IButtonEvents_PressedBeforeEventHandler(this.btnConfirmar_PressedBefore);
             this.btnCancelar = ((SAPbouiCOM.Button)(this.GetItem("btnCanc1").Specific));
             
             this.OnCustomInitialize();
+            this.SetItemsEvents();
 
         }
         /// <summary>
@@ -46,9 +46,18 @@ namespace FRMTransPassag.Framework
         //que não foram, em especial, criados pela interface de design de tela.
         private void OnCustomInitialize()
         {
+            this.UIAPIRawForm.Mode = SAPbouiCOM.BoFormMode.fm_FIND_MODE;
+            this.mtxConsulta.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_Single;
+            //this.mtxConsulta.Columns.Item(0).Visible = false;
+            this.mtxConsulta.Columns.Item(1).Editable = true;
+            this.mtxConsulta.Columns.Item(2).Editable = false;
             this.Form_LoadAfter();
         }
-
+        private void SetItemsEvents()
+        {
+            this.btnSelecionar.PressedBefore += new SAPbouiCOM._IButtonEvents_PressedBeforeEventHandler(this.btnConfirmar_PressedBefore);
+            this.txtProcurar.LostFocusAfter += new SAPbouiCOM._IEditTextEvents_LostFocusAfterEventHandler(this.txtProcurar_SeekReg);
+        }        
         public void SetFilter(string[,] filtros)
         {
             this.filter = filtros;
@@ -121,11 +130,11 @@ namespace FRMTransPassag.Framework
         {
             BubbleEvent = true;
             
-            if (mtxConsulta.GetCellFocus().rowIndex > 0)
+            if (this.rowCons > 0)
             {
                 SAPbouiCOM.Matrix mtxSecoes = this.formCaller.MatrizSecoes;
-                this.retConsReg = ((SAPbouiCOM.EditText)mtxConsulta.Columns.Item("cCodCon").Cells.Item(mtxConsulta.GetCellFocus().rowIndex).Specific).String;
-                this.retDescription = ((SAPbouiCOM.EditText)mtxConsulta.Columns.Item("cNameCon").Cells.Item(mtxConsulta.GetCellFocus().rowIndex).Specific).String;
+                this.retConsReg = ((SAPbouiCOM.EditText)mtxConsulta.Columns.Item("cCodCon").Cells.Item(this.rowCons).Specific).String;
+                this.retDescription = ((SAPbouiCOM.EditText)mtxConsulta.Columns.Item("cNameCon").Cells.Item(this.rowCons).Specific).String;
 
                 ((SAPbouiCOM.EditText)mtxSecoes.Columns.Item(this.columnCode).Cells.Item(mtxSecoes.GetCellFocus().rowIndex).Specific).Value = this.retConsReg.ToString();
                 ((SAPbouiCOM.EditText)mtxSecoes.Columns.Item(this.columnName).Cells.Item(mtxSecoes.GetCellFocus().rowIndex).Specific).Value = this.retDescription.ToString();
@@ -133,7 +142,31 @@ namespace FRMTransPassag.Framework
             
             Application.SBO_Application.Forms.ActiveForm.Close();
         }     
+        private void txtProcurar_SeekReg(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
+        {
+            int row = 0;
+
+            SAPbouiCOM.EditText cellCode = null;
+
+            this.UIAPIRawForm.Freeze(true);
+            
+            for (int i = 1; i <= mtxConsulta.VisualRowCount; i++)
+            {
+                cellCode = (SAPbouiCOM.EditText)mtxConsulta.Columns.Item("cCodCon").Cells.Item(i).Specific;
+
+                if ( cellCode.String.Contains(txtProcurar.String))
+                {
+                    row = i;
+                    break;
+                }
+            }
+
+            this.rowCons = row;
+            this.UIAPIRawForm.Freeze(false);
+            this.mtxConsulta.SelectRow(row, true, false);            
+        }
         
+        private int rowCons = 0;
         private string _userTable;
         private string query;
         private string[,] filter = null;
