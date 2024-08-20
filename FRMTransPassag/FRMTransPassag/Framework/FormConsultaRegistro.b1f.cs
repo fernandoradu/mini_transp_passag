@@ -57,6 +57,7 @@ namespace FRMTransPassag.Framework
         {
             this.btnSelecionar.PressedBefore += new SAPbouiCOM._IButtonEvents_PressedBeforeEventHandler(this.btnConfirmar_PressedBefore);
             this.txtProcurar.LostFocusAfter += new SAPbouiCOM._IEditTextEvents_LostFocusAfterEventHandler(this.txtProcurar_SeekReg);
+            this.mtxConsulta.GotFocusAfter += new SAPbouiCOM._IMatrixEvents_GotFocusAfterEventHandler(this.mtxConsulta_GotFocusAfter);
         }        
         public void SetFilter(string[,] filtros)
         {
@@ -163,9 +164,25 @@ namespace FRMTransPassag.Framework
 
             this.rowCons = row;
             this.UIAPIRawForm.Freeze(false);
-            this.mtxConsulta.SelectRow(row, true, false);            
+            //this.mtxConsulta.SelectRow(row, true, false);            
         }
-        
+        public void mtxConsulta_GotFocusAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
+        {
+            if (pVal.ItemUID == "mtxCons1" && pVal.Row > 0)
+            {
+                if ( !string.IsNullOrEmpty(this.txtProcurar.String) && this.rowCons > 0 && this.rowCons != pVal.Row)
+                {
+                    mtxConsulta.SetCellFocus(this.rowCons, 1);
+                }
+                else if(string.IsNullOrEmpty(this.txtProcurar.String) && this.rowCons != pVal.Row)
+                {
+                    this.rowCons = pVal.Row;
+                }
+                
+                int realCurrentRow = mtxConsulta.GetCellFocus().rowIndex;
+                mtxConsulta.SelectRow(realCurrentRow, true, false);
+            }
+        }
         private int rowCons = 0;
         private string _userTable;
         private string query;

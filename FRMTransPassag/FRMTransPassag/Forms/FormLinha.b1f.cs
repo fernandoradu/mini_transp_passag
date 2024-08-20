@@ -20,31 +20,17 @@ namespace FRMTransPassag.Forms
         /// </summary>
         public override void OnInitializeComponent()
         {
-            SAPbouiCOM.EditText txtLocOrig = null;
-            SAPbouiCOM.EditText txtLocDest = null;
-
             this.lblLinha = ((SAPbouiCOM.StaticText)(this.GetItem("lblLinha").Specific));
             this.txtLinha = ((SAPbouiCOM.EditText)(this.GetItem("txtLinha").Specific));
             this.lblNLinha = ((SAPbouiCOM.StaticText)(this.GetItem("lblNLinha").Specific));
             this.txtNLinha = ((SAPbouiCOM.EditText)(this.GetItem("txtNLinha").Specific));
             this.btnCancelar = ((SAPbouiCOM.Button)(this.GetItem("2").Specific));
             this.btnConfirmar = ((SAPbouiCOM.Button)(this.GetItem("1").Specific));
-            this.btnConfirmar.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnConfirmar_PressedAfter);
-            
             this.mtxSecoes = ((SAPbouiCOM.Matrix)(this.GetItem("mtxSecoes").Specific));
-            this.mtxSecoes.KeyDownBefore += new SAPbouiCOM._IMatrixEvents_KeyDownBeforeEventHandler(this.mtxSecoes_KeyDownBefore);
-            this.mtxSecoes.KeyDownAfter += new SAPbouiCOM._IMatrixEvents_KeyDownAfterEventHandler(this.mtxSecoes_KeyDownAfter);
-            this.mtxSecoes.DoubleClickAfter += new SAPbouiCOM._IMatrixEvents_DoubleClickAfterEventHandler(this.Local_DoubleClickAfter);
-
+            this.SetItemsEvents();
             this.OnCustomInitialize();
-
         }
-
-        private void MtxSecoes_ChooseFromListAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         /// <summary>
         /// Initialize form event. Called by framework before form creation.
         /// </summary>
@@ -63,6 +49,14 @@ namespace FRMTransPassag.Forms
             this.LoadMatrixSecao();
             //this.UIAPIRawForm.EnableMenu("1292", true); //Adicionar linha (Matrix ou Grid)
 
+        }
+        private void SetItemsEvents()
+        {            
+            this.btnConfirmar.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnConfirmar_PressedAfter);
+            this.mtxSecoes.KeyDownBefore += new SAPbouiCOM._IMatrixEvents_KeyDownBeforeEventHandler(this.mtxSecoes_KeyDownBefore);
+            this.mtxSecoes.DoubleClickAfter += new SAPbouiCOM._IMatrixEvents_DoubleClickAfterEventHandler(this.Local_DoubleClickAfter);
+            this.mtxSecoes.ValidateBefore += new SAPbouiCOM._IMatrixEvents_ValidateBeforeEventHandler(this.mtxSecoes_ValidateBefore);
+            this.mtxSecoes.LostFocusAfter += new SAPbouiCOM._IMatrixEvents_LostFocusAfterEventHandler(this.mtxSecoes_LostFocusAfter);
         }
         public void LoadMatrixSecao(string idLinha = null)
         {
@@ -199,10 +193,47 @@ namespace FRMTransPassag.Forms
             if (pVal.CharPressed == 40) //40 é igual a seta para baixo. 38 é seta para cima
                 this.AddSecao();
         }
-        private void mtxSecoes_KeyDownAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
+        private void mtxSecoes_ValidateBefore(object sboObject, SAPbouiCOM.SBOItemEventArg pVal, out bool BubbleEvent)
         {
+            string message = "";
+            BubbleEvent = true;
 
+            if (pVal.ColUID.Contains("cLoc") && pVal.InnerEvent && pVal.ItemChanged)
+            {
+                //A partir da segunda linha:
+                //Checar se a localidade inicial é a mesma que a final da linha anterior
+                if (pVal.Row > 1)
+                {
+                    if (pVal.ColUID == "cLocOrig")
+                    {
+
+                        SAPbouiCOM.EditText localOrigem = (SAPbouiCOM.EditText)mtxSecoes.Columns.Item(pVal.ColUID).Cells.Item(pVal.Row).Specific;
+                        SAPbouiCOM.EditText localDestino = (SAPbouiCOM.EditText)mtxSecoes.Columns.Item("cLocDest").Cells.Item(pVal.Row - 1).Specific;
+
+                        if (localOrigem.String != localDestino.String)
+                        {
+                            BubbleEvent = false;
+                            message = "Sequência de localidades incorreta. ";
+                            message += "Necessário que o Local de Origem seja o mesmo que o Local de Destino da linha anterior.";
+                            message += " [Local Origem: " + localOrigem.String + " - Local Destino: " + localDestino.String + "] ";
+                        }
+                    }
+                }
+            }
+
+            if (!BubbleEvent)
+                Application.SBO_Application.SetStatusBarMessage(message, SAPbouiCOM.BoMessageTime.bmt_Short);
         }
+        private void mtxSecoes_LostFocusAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
+        {
+            SAPbouiCOM.EditText cellLocalidade = (SAPbouiCOM.EditText)mtxSecoes.GetCellSpecific(pVal.ColUID, pVal.Row);
+            
+            if (pVal.ColUID.Contains("cLoc") &&  !string.IsNullOrEmpty(cellLocalidade.String))
+            {
+                Tools.ExistReg()
+            }
+        }
+
         private SAPbouiCOM.StaticText lblLinha;
         private SAPbouiCOM.EditText txtLinha;
         private SAPbouiCOM.StaticText lblNLinha;
