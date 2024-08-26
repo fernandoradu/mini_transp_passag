@@ -83,24 +83,37 @@ namespace FRMTransPassag.Repositories
         }
         public void RepositoryToForm(Form form ,bool newReg = false)
         {
-
+            throw new NotImplementedException();
         }
         public void ResetError()
         {
-
+            throw new NotImplementedException();
         }
         public void SetFormMode(Form form)
         {
+            throw new NotImplementedException();
+        }
 
+        public void SetupRecordset(bool init = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ExecuteQuery()
+        {
+            throw new NotImplementedException();
         }
         #region Propiedades da Classe
         private bool _error = false;
         public string Code { get; set; }
         public string Name { get; set; }
         public string ErrorMessage { get; set; }
+        public string OKMessage { get; set; }
+        public object TableName { get; set; }
         public bool HasError { get { return this._error; } }
         public UserTable TabLinhas = null;
         public UserTable TabSecLinhas = null;
+        public Recordset Recordset { get; set; }
         public List<SecaoLinha> SecoesLinha { get; set; }
         #endregion
     }

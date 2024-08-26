@@ -186,6 +186,52 @@ namespace FRMTransPassag.Framework.Classes
 
 			return existe;
         }
+		public static string ComposeSimpleQuery(string table, object fields = null, object[,] filter = null)
+        {
+			string query = "";
+			StringBuilder buildQuery = new StringBuilder();
+
+			buildQuery.Append("SELECT ");
+			
+			if (fields == null || fields.GetType().Name == "string")
+				buildQuery.Append("* ");
+			else if (fields.GetType().Name == "string[]")
+            {
+				string[] internalFields = (string[])fields;
+
+                for (int i = 0; i < internalFields.Length - 1; i++)
+                {
+					buildQuery.AppendFormat("{0} ", internalFields[i]);
+
+					if (i < internalFields.Length - 1)
+						buildQuery.Append("AND ");
+                }
+            }
+
+			buildQuery.AppendFormat("FROM {0} ", table);
+
+			if (filter != null)
+            {
+				buildQuery.Append("WHERE ");
+
+				for (int i = 0; i < filter.Length - 1; i++)
+				{
+					buildQuery.AppendFormat("{0} {1} {2} ",
+						filter[i, 0].ToString(),
+						filter.GetLength(1) > 2 && filter[i, 2] != null ? filter[i, 2].ToString() : "=",
+						filter[i, 1].ToString());
+
+					if (i < filter.Length - 1)
+						if (filter.GetLength(1) > 3)
+							buildQuery.AppendFormat("{0} ", filter[i, 3] != null ? filter[i, 3].ToString() : "AND");
+                }
+
+            }
+			
+			query = buildQuery.ToString();
+
+			return query;
+        }
 		public static void SetUICompany()
         {
 			if (Tools.Company == null)

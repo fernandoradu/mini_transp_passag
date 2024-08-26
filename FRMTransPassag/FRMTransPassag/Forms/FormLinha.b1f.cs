@@ -109,6 +109,8 @@ namespace FRMTransPassag.Forms
                 this.UIAPIRawForm.Freeze(false);
             }
             //Necessário criar uma linha para poder editar os dados.
+            this.mtxSecoes.Columns.Item("cNLocOri").Editable = false;
+            this.mtxSecoes.Columns.Item("cNLocDes").Editable = false;
             this.AddSecao();
         }
         public static int SetOperation()
@@ -151,11 +153,18 @@ namespace FRMTransPassag.Forms
             {
                 if (lastCode != "")
                     code = Tools.StringNext(lastCode);
-                
-                this.mtxSecoes.AddRow();
+
+                if (currentRow > 0)
+                {
+                    this.mtxSecoes.AddRow(currentRow, 1);
+                    this.mtxSecoes.SetCellFocus(lastRow, 1);                    
+                }
+                else
+                    this.mtxSecoes.AddRow();
 
                 lastRow = mtxSecoes.RowCount;
                 ((SAPbouiCOM.EditText)this.mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific).Value = code;
+                //this.UIAPIRawForm.ActiveItem == ""
             }            
 
             return;
@@ -204,8 +213,7 @@ namespace FRMTransPassag.Forms
                 //Checar se a localidade inicial é a mesma que a final da linha anterior
                 if (pVal.Row > 1)
                 {
-                    if (pVal.ColUID == "cLocOrig")
-                    {
+                    if (pVal.ColUID == "cLocOrig")                    {
 
                         SAPbouiCOM.EditText localOrigem = (SAPbouiCOM.EditText)mtxSecoes.Columns.Item(pVal.ColUID).Cells.Item(pVal.Row).Specific;
                         SAPbouiCOM.EditText localDestino = (SAPbouiCOM.EditText)mtxSecoes.Columns.Item("cLocDest").Cells.Item(pVal.Row - 1).Specific;
@@ -230,7 +238,15 @@ namespace FRMTransPassag.Forms
             
             if (pVal.ColUID.Contains("cLoc") &&  !string.IsNullOrEmpty(cellLocalidade.String))
             {
-                Tools.ExistReg()
+                Localidade local = new Localidade();
+                string colName = pVal.ColUID == "cLocOrig" ? "cNLocOri" : "cNLocDes";
+                string[,] seek = new string[1, 2];
+                
+                seek[0, 0] = "Code";
+                seek[0, 1] = "'" + cellLocalidade.String + "'";
+                
+                if (local.SeekLocalidade(seek))
+                    ((SAPbouiCOM.EditText)mtxSecoes.Columns.Item(colName).Cells.Item(pVal.Row).Specific).Value = local.Name;
             }
         }
 

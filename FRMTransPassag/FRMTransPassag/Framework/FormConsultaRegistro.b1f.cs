@@ -48,7 +48,7 @@ namespace FRMTransPassag.Framework
         {
             this.UIAPIRawForm.Mode = SAPbouiCOM.BoFormMode.fm_FIND_MODE;
             this.mtxConsulta.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_Single;
-            //this.mtxConsulta.Columns.Item(0).Visible = false;
+            
             this.mtxConsulta.Columns.Item(1).Editable = true;
             this.mtxConsulta.Columns.Item(2).Editable = false;
             this.Form_LoadAfter();
@@ -88,7 +88,6 @@ namespace FRMTransPassag.Framework
 
                         if (ind < filter.Length - 1)
                             buildQuery.Append(" AND ");
-
                     }                    
                 }
 

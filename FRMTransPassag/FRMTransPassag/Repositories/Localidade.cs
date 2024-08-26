@@ -170,14 +170,105 @@ namespace FRMTransPassag.Repositories
                     break;
             }
         }
+        public void SetupRecordset(bool init = false)
+        {
+            this._recordset = (Recordset)Tools.Company.GetBusinessObject(BoObjectTypes.BoRecordset);            
+            
+            if (init)
+            {
+                this.ExecuteQuery();
+            }
+        }
+        public void ExecuteQuery()
+        { 
+            try
+            {
+                if (this._recordset == null)
+                    this.SetupRecordset();
+
+                if (this._query != "")
+                    this._recordset.DoQuery(this._query);
+                else
+                    throw new Exception("Erro na execução da consulta (query).");
+            }
+            catch (Exception ex)
+            {
+                if (this._recordset == null)
+                    this.SetupRecordset();
+                
+                //Tenta executar uma query simples: Select * From @TB_LOCALIDADE
+                this.SetFilterToQuery();
+                _recordset.DoQuery(this._query);                
+            }            
+        }
+        public void SetFilterToQuery(string[] fields = null, object[,] filter = null)
+        {
+            if (string.IsNullOrEmpty(this._table))
+                this._table = "\"@TB_LOCALIDADE\"";
+
+            this._query = Tools.ComposeSimpleQuery(this._table, fields, filter);//this.ComposeQuery(fields, filter);
+            this.SetSelectionFields(fields);
+        }
+        public void SetSelectionFields(object fields = null)
+        {
+            StringBuilder selection = new StringBuilder();
+            if (fields != null && fields.GetType().Name != "string")
+            {
+                this._recordFields = (string[])fields;
+            
+                for (int i = 0; i < this._recordFields.Length - 1; i++)
+                {
+                    selection.AppendFormat("{0} ", this._recordFields[i]);
+
+                    if (i < this._recordFields.Length - 1)
+                        selection.Append(", ");
+                }
+
+            }
+            else
+            {
+                this._recordFields = null;
+                selection.Append("SELECT * ");
+            }
+
+            this._selectionFields = selection.ToString();
+        }
+        public bool SeekLocalidade(string[,] searchReg, bool selfUpdate = true)
+        {
+            bool found = false;
+            
+            this.SetFilterToQuery(null, searchReg);
+            this.ExecuteQuery();
+            this.Recordset.MoveFirst();
+
+            if (!this.Recordset.EoF)
+            {
+                found = true;
+                
+                if (selfUpdate)
+                {
+                    this.Code = this.Recordset.Fields.Item("Code").Value.ToString();
+                    this.Name = this.Recordset.Fields.Item("Name").Value.ToString();
+                }
+            }
+            
+            return found;
+        }
         #region Propriedades da Classe
+        private string _table = "\"@TB_LOCALIDADE\"";
+        private string _query = "";        
+        private string _selectionFields = "";
+        private string[] _recordFields = null;
         private bool _error = false;
+        private Recordset _recordset = null;
         public string Code { set; get; }
         public string Name { set; get; }
         public UserTable TabLocalidade = null;
+        public Recordset Recordset { get { return _recordset; } }
         public bool HasError { get { return this._error; } }
         public string ErrorMessage { set; get; }
         public string OKMessage { set; get; }
+        public object TableName { get { return _table; } }
         #endregion
     }
 }
