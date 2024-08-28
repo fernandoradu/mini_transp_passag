@@ -72,7 +72,7 @@ namespace FRMTransPassag.Forms
         {
             Localidade localidade = new Localidade();
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
-
+            
             if (form.UniqueID == "FRMLocal" && pVal.ItemUID == "1")
             {
                 //Recupera as informações do formulário para o objeto de repositório da classe Localidade

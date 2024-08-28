@@ -7,4 +7,3 @@ C:\SAP Business One\Meus Addons\Mini Transporte Passageiros\FRMTransPassag\FRMTr
 C:\SAP Business One\Meus Addons\Mini Transporte Passageiros\FRMTransPassag\FRMTransPassag\obj\Debug\FRMTransPassag.csproj.CopyComplete
 C:\SAP Business One\Meus Addons\Mini Transporte Passageiros\FRMTransPassag\FRMTransPassag\obj\Debug\FRMTransPassag.exe
 C:\SAP Business One\Meus Addons\Mini Transporte Passageiros\FRMTransPassag\FRMTransPassag\obj\Debug\FRMTransPassag.pdb
-C:\SAP Business One\Meus Addons\Mini Transporte Passageiros\FRMTransPassag\FRMTransPassag\obj\Debug\FRMTransPassag.csproj.AssemblyReference.cache

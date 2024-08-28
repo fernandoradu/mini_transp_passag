@@ -57,6 +57,8 @@ namespace FRMTransPassag.Forms
             this.mtxSecoes.DoubleClickAfter += new SAPbouiCOM._IMatrixEvents_DoubleClickAfterEventHandler(this.Local_DoubleClickAfter);
             this.mtxSecoes.ValidateBefore += new SAPbouiCOM._IMatrixEvents_ValidateBeforeEventHandler(this.mtxSecoes_ValidateBefore);
             this.mtxSecoes.LostFocusAfter += new SAPbouiCOM._IMatrixEvents_LostFocusAfterEventHandler(this.mtxSecoes_LostFocusAfter);
+            this.btnConfirmar.PressedBefore += new SAPbouiCOM._IButtonEvents_PressedBeforeEventHandler(this.btnConfirmar_PressedBefore);
+            this.btnConfirmar.PressedBefore += new SAPbouiCOM._IButtonEvents_PressedBeforeEventHandler(this.btnConfirmar_PressedBefore);
         }
         public void LoadMatrixSecao(string idLinha = null)
         {
@@ -146,28 +148,72 @@ namespace FRMTransPassag.Forms
                 currentRow = mtxSecoes.GetCellFocus().rowIndex;
                 cellCode = (SAPbouiCOM.EditText)mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific;
                 
-                lastCode = cellCode.Value;            
+                lastCode = cellCode.Value;
+
+                if ( currentRow == lastRow)
+                {
+                    if (lastCode != "")
+                        code = Tools.StringNext(lastCode);
+
+                    if (currentRow > 0)
+                    {
+                        this.mtxSecoes.AddRow();
+                        this.mtxSecoes.SetCellFocus(lastRow, 1);                    
+                    }                
+
+                    lastRow = mtxSecoes.RowCount;            
+                    ((SAPbouiCOM.EditText)this.mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific).Value = code;
+                }            
+            }
+            else
+            {
+                mtxSecoes.AddRow();
+                lastRow = 1;                
+                ((SAPbouiCOM.EditText)this.mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific).Value = code;
             }
 
-            if ( currentRow == lastRow)
-            {
-                if (lastCode != "")
-                    code = Tools.StringNext(lastCode);
+            return;
+        }
+        private void btnConfirmar_PressedBefore(object sboObject, SAPbouiCOM.SBOItemEventArg pVal, out bool BubbleEvent)
+        {
+            string errorMessage = "";
+            BubbleEvent = true;
 
-                if (currentRow > 0)
+            if (string.IsNullOrEmpty(this.txtLinha.String) || string.IsNullOrEmpty(this.txtNLinha.String))
+            {
+                BubbleEvent = false;
+                errorMessage = "Identificador [Id. Linha] e/ou nome da linha não foi(ram) preenchido(s).";
+            }
+            else
+            {
+                if (this.mtxSecoes.RowCount == 0)
                 {
-                    this.mtxSecoes.AddRow(currentRow, 1);
-                    this.mtxSecoes.SetCellFocus(lastRow, 1);                    
+                    BubbleEvent = false;
+                    errorMessage = "As seções da linha não foram informadas.";
                 }
                 else
-                    this.mtxSecoes.AddRow();
+                {
+                    SAPbouiCOM.EditText cellLocOrig = null;
+                    SAPbouiCOM.EditText cellLocDest = null;
+                    for (int ind = 1; ind <= this.mtxSecoes.RowCount; ind++)
+                    {
+                        cellLocOrig = (SAPbouiCOM.EditText)this.mtxSecoes.Columns.Item("cLocOrig").Cells.Item(ind).Specific;
+                        cellLocDest = (SAPbouiCOM.EditText)this.mtxSecoes.Columns.Item("cLocDest").Cells.Item(ind).Specific;
 
-                lastRow = mtxSecoes.RowCount;
-                ((SAPbouiCOM.EditText)this.mtxSecoes.Columns.Item("cCode").Cells.Item(lastRow).Specific).Value = code;
-                //this.UIAPIRawForm.ActiveItem == ""
-            }            
+                        if (string.IsNullOrEmpty(cellLocOrig.String) || string.IsNullOrEmpty(cellLocDest.String))
+                        {
+                            BubbleEvent = false;
+                            errorMessage = "Localidade de origem ou destino não foi(ram) preenchida(s)";
+                            break;
+                        }
+                    }
 
-            return;
+                }
+            }
+            if (!BubbleEvent)
+            {
+                Application.SBO_Application.SetStatusBarMessage(errorMessage, SAPbouiCOM.BoMessageTime.bmt_Short, true);
+            }
         }
         private void btnConfirmar_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
@@ -176,7 +222,7 @@ namespace FRMTransPassag.Forms
             Linha linha = new Linha();
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
 
-            if (form.UniqueID == "FRMLinha")
+            if (form.UniqueID == "FRMLinha" && pVal.ItemUID == "1")
             {
                 linha.FormToRepository(form);
                 linha.ManipulateData(operation);
@@ -207,7 +253,7 @@ namespace FRMTransPassag.Forms
             string message = "";
             BubbleEvent = true;
 
-            if (pVal.ColUID.Contains("cLoc") && pVal.InnerEvent && pVal.ItemChanged)
+            if (pVal.ColUID.Contains("cLoc") && pVal.ItemChanged)
             {
                 //A partir da segunda linha:
                 //Checar se a localidade inicial é a mesma que a final da linha anterior

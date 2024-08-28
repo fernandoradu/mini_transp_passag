@@ -29,6 +29,9 @@ namespace FRMTransPassag.Repositories
             EditText cLocDest = null;
             EditText cNLocDes = null;
 
+            if (this.SecoesLinha == null)
+                this.SecoesLinha = new List<SecaoLinha>();
+
             this.Code = ((EditText)form.Items.Item("txtLinha").Specific).String;
             this.Name = ((EditText)form.Items.Item("txtNLinha").Specific).String;
 
