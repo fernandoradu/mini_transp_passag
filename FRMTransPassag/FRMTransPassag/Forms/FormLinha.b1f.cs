@@ -217,7 +217,7 @@ namespace FRMTransPassag.Forms
         }
         private void btnConfirmar_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
-            int operation = Tools.UserTabNavigator != null ? Tools.UserTabNavigator.RunningOperation : FormLinha.SetOperation();
+            //int operation = Tools.UserTabNavigator != null ? Tools.UserTabNavigator.RunningOperation : FormLinha.SetOperation();
 
             Linha linha = new Linha();
             SAPbouiCOM.Form form = Application.SBO_Application.Forms.ActiveForm;
@@ -225,7 +225,21 @@ namespace FRMTransPassag.Forms
             if (form.UniqueID == "FRMLinha" && pVal.ItemUID == "1")
             {
                 linha.FormToRepository(form);
-                linha.ManipulateData(operation);
+                linha.SetFormMode(form);//linha.ManipulateData(operation);
+
+                if (linha.HasError)
+                    Application.SBO_Application.SetStatusBarMessage(linha.ErrorMessage, SAPbouiCOM.BoMessageTime.bmt_Short);
+                else   //Se for inclusão de registro, roda novamente a query do objeto RecordSet{
+                {
+                    Tools.UserTabNavigator.Setup();
+
+                    if (Tools.UserTabNavigator.RunningOperation == 1)       //Inclusão
+                        Tools.UserTabNavigator.LastRecord();
+                    else if (Tools.UserTabNavigator.RunningOperation == 2)  //Update
+                        Tools.UserTabNavigator.SeekRecord(new object[] { "Code", linha.Code });
+
+                    Application.SBO_Application.StatusBar.SetText(linha.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+                }
             }
         }
                

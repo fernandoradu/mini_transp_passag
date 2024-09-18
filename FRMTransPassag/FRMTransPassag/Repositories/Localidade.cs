@@ -31,21 +31,13 @@ namespace FRMTransPassag.Repositories
         {
             bool manipulation = false;
 
-            if (operation == 1) //1- Inserção de dados
-            {
-                this.TabLocalidade.Code = this.Code;
-                this.TabLocalidade.Name = this.Name;
-            }
-            else if (operation == 2 || operation == 3)  //2- Atualização de dados, 3- Exclusão de dados
-            {
-                this.TabLocalidade.GetByKey(this.Code);
-                this.TabLocalidade.Name = this.Name;
-            }
-            
             switch (operation)
             {
-                case 1: //Inserção de registro de nova localidade
+                case (int)Tools.OptionsHandler.Inclusao:
 
+                    this.TabLocalidade.Code = this.Code;
+                    this.TabLocalidade.Name = this.Name;
+                    
                     manipulation = this.TabLocalidade.Add() == 0;
 
                     if (manipulation)
@@ -64,10 +56,13 @@ namespace FRMTransPassag.Repositories
                     
                     break;
 
-                case 2: //Atualização de localidade exsitente
+                case (int)Tools.OptionsHandler.Atualizacao:
                     
+                    this.TabLocalidade.GetByKey(this.Code);
+                    this.TabLocalidade.Name = this.Name;
+
                     manipulation = this.TabLocalidade.Update() == 0;
-                    
+
                     if (manipulation)
                     {
                         this.ResetError();
@@ -80,13 +75,15 @@ namespace FRMTransPassag.Repositories
                         this.ErrorMessage = "Não foi possível atualizar o cadastro da localidade! ";
                         this.ErrorMessage += "[Code: " + this.TabLocalidade.Code + "]";
                     }
-                   
-                    break;
 
-                case 3: //Remoção (exclusão) de uma localidade
+                    break;
+                case (int)Tools.OptionsHandler.Exclusao:
                     
+                    this.TabLocalidade.GetByKey(this.Code);
+                    this.TabLocalidade.Name = this.Name;
+
                     manipulation = this.TabLocalidade.Remove() == 0;
-                    
+
                     if (manipulation)
                     {
                         this.ResetError();
@@ -99,12 +96,11 @@ namespace FRMTransPassag.Repositories
                         this.ErrorMessage = "Não foi possível excluir o cadastro da localidade! ";
                         this.ErrorMessage += "[Code: " + this.TabLocalidade.Code + "]";
                     }
-                    
-                    break;
 
+                    break;
                 default:
                     break;
-            }            
+            }
 
             return this._error;
         }
@@ -203,36 +199,9 @@ namespace FRMTransPassag.Repositories
         }
         public void SetFilterToQuery(string[] fields = null, object[,] filter = null)
         {
-            if (string.IsNullOrEmpty(this._table))
-                this._table = "\"@TB_LOCALIDADE\"";
-
-            this._query = Tools.ComposeSimpleQuery(this._table, fields, filter);//this.ComposeQuery(fields, filter);
-            this.SetSelectionFields(fields);
+            this._query = Tools.ComposeSimpleQuery(this._table, fields, filter);            
         }
-        public void SetSelectionFields(object fields = null)
-        {
-            StringBuilder selection = new StringBuilder();
-            if (fields != null && fields.GetType().Name != "string")
-            {
-                this._recordFields = (string[])fields;
-            
-                for (int i = 0; i < this._recordFields.Length - 1; i++)
-                {
-                    selection.AppendFormat("{0} ", this._recordFields[i]);
-
-                    if (i < this._recordFields.Length - 1)
-                        selection.Append(", ");
-                }
-
-            }
-            else
-            {
-                this._recordFields = null;
-                selection.Append("SELECT * ");
-            }
-
-            this._selectionFields = selection.ToString();
-        }
+        
         public bool SeekLocalidade(string[,] searchReg, bool selfUpdate = true)
         {
             bool found = false;
@@ -257,8 +226,6 @@ namespace FRMTransPassag.Repositories
         #region Propriedades da Classe
         private string _table = "\"@TB_LOCALIDADE\"";
         private string _query = "";        
-        private string _selectionFields = "";
-        private string[] _recordFields = null;
         private bool _error = false;
         private Recordset _recordset = null;
         public string Code { set; get; }

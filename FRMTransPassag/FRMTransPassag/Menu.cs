@@ -108,7 +108,7 @@ namespace FRMTransPassag
         
         private void HandleNavBar(string menuUID)
         {
-            Tools.UserTabNavigator.RunningOperation = 2;    //2-Operação de Atualização
+            Tools.UserTabNavigator.RunningOperation = (int)Tools.OptionsHandler.Atualizacao;    //2-Operação de Atualização
             switch (menuUID)
             {
                 case "1290":    //Evento sobre a Seta para ir para o primeiro registro
@@ -136,10 +136,10 @@ namespace FRMTransPassag
                     Tools.UserTabNavigator.LastRecord();
                     break;
                 case "1282":    //Evento sobre o menu (barra de ferramentas) Adicionar
-                    Tools.UserTabNavigator.RunningOperation = 1;    //1-Operação de Inclusão de registro
+                    Tools.UserTabNavigator.RunningOperation = (int)Tools.OptionsHandler.Inclusao;    //1-Operação de Inclusão de registro
                     break;
                 case "1283":    //Evento sobre a opção (botão direito do mouse) Remover
-                    Tools.UserTabNavigator.RunningOperation = 3;    //3-Operação de Exclusão                    
+                    Tools.UserTabNavigator.RunningOperation = (int)Tools.OptionsHandler.Exclusao;    //3-Operação de Exclusão                    
                     break;
                 default:
                     break;
@@ -188,7 +188,7 @@ namespace FRMTransPassag
             }
             else if (Tools.UserTabNavigator.UserTableName == "@TB_LINHA" && form.UniqueID == "FRMLinha")
             {
-
+                this.HandleLinha(form, exclui);
             }
             else if (Tools.UserTabNavigator.UserTableName == "@TB_HORARIO" && form.UniqueID == "FRMHora")
             {
@@ -201,12 +201,12 @@ namespace FRMTransPassag
             Localidade localidade = new Localidade(Tools.UserTabNavigator.RecordGetValue("Code").ToString(),
                                                     Tools.UserTabNavigator.RecordGetValue("Name").ToString());
             
-            localidade.RepositoryToForm(form, Tools.UserTabNavigator.RunningOperation == 1);                
+            localidade.RepositoryToForm(form, Tools.UserTabNavigator.RunningOperation == (int)Tools.OptionsHandler.Inclusao);                
             
             if ( exclui && 
                 Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1 )
             {
-                localidade.ManipulateData(3);
+                localidade.ManipulateData((int)Tools.OptionsHandler.Exclusao);
                 
                 if (localidade.HasError)
                     Application.SBO_Application.SetStatusBarMessage(localidade.ErrorMessage, SAPbouiCOM.BoMessageTime.bmt_Short);
@@ -224,40 +224,64 @@ namespace FRMTransPassag
         }
         private void HandleLinha(SAPbouiCOM.Form form, bool exclui = false)
         {
-            if ( !exclui )
-            {
-                if (Tools.UserTabNavigator.RunningOperation == 1)   //Inclusão de dados, inicializa com os campos em branco
-                {
-                    form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Code", 0, "");
-                    form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Name", 0, "");
-                }
-                else
-                {
-                    form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Code", 0, Tools.UserTabNavigator.RecordGetValue("Code").ToString());
-                    form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Name", 0, Tools.UserTabNavigator.RecordGetValue("Name").ToString());
+            //TODO: Alterar aqui a forma de manipular o formulário de cadastro de linha
+            Linha linha= new Linha(Tools.UserTabNavigator.RecordGetValue("Code").ToString());
 
-                    //todo: Carregar a Matrix
+            linha.RepositoryToForm(form, Tools.UserTabNavigator.RunningOperation == (int)Tools.OptionsHandler.Inclusao);
+
+            if (exclui &&
+                Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1)
+            {
+                linha.ManipulateData((int)Tools.OptionsHandler.Exclusao);
+
+                if (linha.HasError)
+                    Application.SBO_Application.SetStatusBarMessage(linha.ErrorMessage, SAPbouiCOM.BoMessageTime.bmt_Short);
+                else   //Se for inclusão de registro, roda novamente a query do objeto RecordSet
+                {
+                    form.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE;
+                    Tools.UserTabNavigator.Setup();
+                    Tools.UserTabNavigator.LastRecord();
+
+                    Application.SBO_Application.StatusBar.SetText(linha.OKMessage, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+
+                    this._formInitialized = false;
                 }
             }
-            else
-            {
-                if (Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1) //1-Confirma, 2-Cancelar
-                {
-                    if (_formLocalidade != null)
-                    {
-                        string Code = form.DataSources.DBDataSources.Item("@TB_LINHA").GetValue("Code", 0);
-                        string Name = form.DataSources.DBDataSources.Item("@TB_LINHA").GetValue("Name", 0);
-                        //Todo: Carregar a Matrix
+            //if ( !exclui )
+            //{
+            //    if (Tools.UserTabNavigator.RunningOperation == 1)   //Inclusão de dados, inicializa com os campos em branco
+            //    {
+            //        form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Code", 0, "");
+            //        form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Name", 0, "");
+            //    }
+            //    else
+            //    {
+            //        form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Code", 0, Tools.UserTabNavigator.RecordGetValue("Code").ToString());
+            //        form.DataSources.DBDataSources.Item("@TB_LINHA").SetValue("Name", 0, Tools.UserTabNavigator.RecordGetValue("Name").ToString());
 
-                        Linha linha = new Linha();
-                        linha.ManipulateData(Tools.UserTabNavigator.RunningOperation);
-                    }
+            //        //todo: Carregar a Matrix
+            //    }
+            //}
+            //else
+            //{
+            //    if (Application.SBO_Application.MessageBox("Deseja excluir o registro?", 1, "Confirmar", "Cancelar") == 1) //1-Confirma, 2-Cancelar
+            //    {
+            //        if (_formLocalidade != null)
+            //        {
+            //            string Code = form.DataSources.DBDataSources.Item("@TB_LINHA").GetValue("Code", 0);
+            //            string Name = form.DataSources.DBDataSources.Item("@TB_LINHA").GetValue("Name", 0);
+            //            //Todo: Carregar a Matrix
 
-                }
-            }
+            //            Linha linha = new Linha();
+            //            linha.ManipulateData(Tools.UserTabNavigator.RunningOperation);
+            //        }
+
+            //    }
+            //}
         }
         private FormLocalidade _formLocalidade;
         private FormLinha _formLinha;
         private bool _formInitialized = false;
+        
     }
 }

@@ -143,9 +143,9 @@ namespace FRMTransPassag.Framework.Classes
 			return ret;
 		}
 
-		public static bool ExistReg(Recordset oRecSet, string table, string alias, 
+		public static bool ExistReg(Recordset oRecSet, string table, string alias,
 			string[,] seek, string fieldIdReg, out string idReg, out string errorMessage)
-        {
+		{
 			bool existe = false;
 
 			StringBuilder query = new StringBuilder();
@@ -155,24 +155,24 @@ namespace FRMTransPassag.Framework.Classes
 			try
 			{
 				query.Append("SELECT ");
-				query.AppendFormat("{0}.\"{1}\", ", alias, seek[0,0]);
+				query.AppendFormat("{0}.\"{1}\", ", alias, seek[0, 0]);
 				query.AppendFormat("{0}.\"{1}\" ", alias, fieldIdReg);
 				query.AppendFormat(" FROM \"{0}\" ", table);
 				query.AppendFormat(" {0} ", alias);
-				
-				for (int ind = 0; ind < seek.Length-1; ind++)
+
+				for (int ind = 0; ind < seek.Length - 1; ind++)
 				{
 					if (ind == 0)
 						query.Append("WHERE ");
-					
-					query.AppendFormat("{0}.\"{1}\" = {2}", alias,seek[ind,0],seek[ind,1]);
-                }
+
+					query.AppendFormat("{0}.\"{1}\" = {2}", alias, seek[ind, 0], seek[ind, 1]);
+				}
 
 				oRecSet.DoQuery(query.ToString());
 
 				oRecSet.MoveFirst();
 
-				if ( oRecSet.Fields.Item(0).Value.ToString() != "" )
+				if (oRecSet.Fields.Item(0).Value.ToString() != "")
 				{
 					existe = !string.IsNullOrWhiteSpace(oRecSet.Fields.Item(0).Value.ToString());
 					idReg = oRecSet.Fields.Item(fieldIdReg).Value.ToString();
@@ -182,36 +182,96 @@ namespace FRMTransPassag.Framework.Classes
 			{
 				existe = false;
 				errorMessage = ex.Message;
-			}           
+			}
 
 			return existe;
-        }
-		public static string ComposeSimpleQuery(string table, object fields = null, object[,] filter = null)
-        {
+		}
+		public static string ComposeSimpleQuery(object table, object fields = null,
+			object[,] filter = null, string[,] linkedFields = null)
+		{
 			string query = "";
+			string[] tables = null;
+
+			StringBuilder buildQuery = new StringBuilder();
+			//Composição da string de SELECT [campos]
+			buildQuery.Append(Tools.SetSelectionFields(fields));
+			//composição da string de tabelas [FROM e seus INNER JOINs]
+			buildQuery.AppendFormat("{0} {1}", Tools.SetJoinQuery(table, linkedFields));
+			//Composição da string de filtro WHERE [filter]
+			buildQuery.Append(Tools.SetWhereQuery(filter));
+
+			query = buildQuery.ToString();
+
+			return query;
+		}
+		private static string SetSelectionFields(object fieldsArg = null)
+		{
+			StringBuilder selection = new StringBuilder();
+
+			if (fieldsArg != null && fieldsArg.GetType().Name != "string")
+			{
+				string[] fields = (string[])fieldsArg;
+				for (int i = 0; i < fields.Length - 1; i++)
+				{
+					selection.AppendFormat("{0} ", fields[i]);
+
+					if (i < fields.Length - 1)
+						selection.Append(", ");
+				}
+
+			}
+			else
+			{
+				selection.Append("SELECT * ");
+			}
+
+			return selection.ToString();
+		}
+		private static string[] SetJoinQuery(object table, string[,] joinFields = null)
+		{
+			string[] tables = null;
+			string[] join = new string[2];
+
 			StringBuilder buildQuery = new StringBuilder();
 
-			buildQuery.Append("SELECT ");
-			
-			if (fields == null || fields.GetType().Name == "string")
-				buildQuery.Append("* ");
-			else if (fields.GetType().Name == "string[]")
-            {
-				string[] internalFields = (string[])fields;
+			if (table.GetType().Name == "string")
+				tables = new string[] { table.ToString() };
+			else
+				tables = (string[])table;
 
-                for (int i = 0; i < internalFields.Length - 1; i++)
-                {
-					buildQuery.AppendFormat("{0} ", internalFields[i]);
+			for (int ind = 0; ind < tables.Length; ind++)
+			{
+				buildQuery.AppendFormat("FROM {0} ", tables[ind]);
 
-					if (i < internalFields.Length - 1)
+				if (ind < tables.Length - 1)
+					buildQuery.Append(", ");
+			}
+
+			join[0] = buildQuery.ToString();
+
+			if (joinFields != null)
+			{
+				for (int i = 0; i < joinFields.Length; i++)
+				{
+					buildQuery.AppendFormat("\"{0}\" = \"{1}\"", joinFields[i, 0],
+						joinFields[i, 1]);
+
+					if (i < joinFields.Length - 1)
 						buildQuery.Append("AND ");
-                }
-            }
+				}
 
-			buildQuery.AppendFormat("FROM {0} ", table);
+				join[1] = buildQuery.ToString();
+			}
+
+			return join;
+		}
+		private static string SetWhereQuery(object[,] filter = null)
+		{
+			StringBuilder buildQuery = new StringBuilder();
+			string where = "";
 
 			if (filter != null)
-            {
+			{
 				buildQuery.Append("WHERE ");
 
 				for (int i = 0; i < filter.Length - 1; i++)
@@ -224,67 +284,77 @@ namespace FRMTransPassag.Framework.Classes
 					if (i < filter.Length - 1)
 						if (filter.GetLength(1) > 3)
 							buildQuery.AppendFormat("{0} ", filter[i, 3] != null ? filter[i, 3].ToString() : "AND");
-                }
+				}
 
-            }
-			
-			query = buildQuery.ToString();
+			}
 
-			return query;
-        }
+			return where;
+		}
 		public static void SetUICompany()
-        {
+		{
 			if (Tools.Company == null)
 				Tools.Company = (Company)Application.SBO_Application.Company.GetDICompany();
 		}
 		public static void SetUserTableNavigator(string table)
-        {
+		{
 			if (Tools.Company == null)
 				Tools.SetUICompany();
 
 			if (UserTabNavigator == null)
 				UserTabNavigator = new UserDataTableNav(table, Tools.Company);
 
-        }
+		}
 		public static void ConsultaRegistro(object formCaller, string columnCode, string columnDescription)
-        {
+		{
 			Tools.FormCaller = formCaller;
 
-            switch (formCaller.GetType().Name)
-            {
-				case "FormLinha":	// formulário chamador da consulta é de cadastro de Linhas
+			switch (formCaller.GetType().Name)
+			{
+				case "FormLinha":   // formulário chamador da consulta é de cadastro de Linhas
 					Tools.TableLookUp = "@TB_LOCALIDADE";
 					Tools.FormConsulta = new FormConsultaRegistro((FormLinha)formCaller, columnCode, columnDescription);
 					break;
 				default:
-                    break;
-            }
-			
+					break;
+			}
+
 			Tools.FormConsulta.Show();
-        }
+		}
 
 		public static bool CreateTables(out string message)
-        {
+		{
 			bool hasCreated = true;
 			message = "";
 
 			try
-            {
+			{
 				if (Tools.Company == null)
 				{
 					Tools.SetUICompany();
-                }
-				
+				}
+
 				//throw new Exception("Não foi possível carregar informaçõoes de Company da DI-API");
-            }
-            catch (Exception ex)
-            {
+			}
+			catch (Exception ex)
+			{
 				hasCreated = false;
 				message = "Não foi possível carregar informaçõoes de Company.";
-                //throw new ;
-            }
+				//throw new ;
+			}
 
 			return hasCreated;
+		}
+		//public static int Options(OptionsHandler opcoes)
+		//{
+		//	int chooseOption = (int)opcoes;
+
+		//	return chooseOption;
+		//}	
+		public enum OptionsHandler
+        {
+			Inclusao = 1,
+			Atualizacao = 2,
+			Exclusao = 3
         }
 		public static Company Company = null;
 		public static UserDataTableNav UserTabNavigator = null;

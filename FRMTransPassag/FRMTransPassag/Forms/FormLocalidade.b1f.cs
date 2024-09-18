@@ -38,8 +38,6 @@ namespace FRMTransPassag.Forms
         public override void OnInitializeFormEvents()
         {
         }
-
-
         private void OnCustomInitialize()
         {
             this.UIAPIRawForm.EnableMenu("1282", true); //Adicionar novo registro
